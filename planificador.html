@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flujo — Planificador Financiero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="app">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      flujo
+    </div>
+    <div class="topbar-right">
+      <div class="saldo-pill">
+        <span class="saldo-label">Disponible</span>
+        <span id="top-saldo">$0</span>
+      </div>
+      <button class="btn btn-sm" onclick="exportJSON()">↓ Exportar</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-item active" onclick="navigate('dashboard', this)">
+        <span class="nav-icon">◈</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="navigate('cobros', this)">
+        <span class="nav-icon">↓</span> Cobros
+      </div>
+      <div class="nav-item" onclick="navigate('pagos', this)" id="nav-pagos">
+        <span class="nav-icon">↑</span> Pagos
+      </div>
+      <div class="nav-item" onclick="navigate('flujo', this)">
+        <span class="nav-icon">〜</span> Flujo
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Herramientas</div>
+      <div class="nav-item" onclick="navigate('ia', this)">
+        <span class="nav-icon">◎</span> Asistente IA
+      </div>
+      <div class="nav-item" onclick="navigate('config', this)">
+        <span class="nav-icon">⊙</span> Configurar
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">Buen día, Ignacio</div>
+        <div class="page-sub" id="dash-date"></div>
+      </div>
+      <div class="metrics" id="dash-metrics"></div>
+      <div class="alerts" id="dash-alerts"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Flujo acumulado</span></div>
+          <div class="card-body" style="padding:16px">
+            <div class="chart-wrap" style="height:200px"><canvas id="chart-flujo" role="img" aria-label="Gráfico flujo de caja"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Composición de pagos</span></div>
+          <div class="card-body" style="padding:16px">
+            <div class="chart-wrap" style="height:200px"><canvas id="chart-cats" role="img" aria-label="Gráfico categorías de pagos"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Próximos vencimientos</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Concepto</th><th>Vence</th><th>Monto</th><th>Urgencia</th></tr></thead>
+          <tbody id="dash-upcoming"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- COBROS -->
+    <div class="page" id="page-cobros">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div><div class="page-title">Cobros</div><div class="page-sub">Ingresos esperados</div></div>
+        <button class="btn btn-accent" onclick="toggleForm('form-cobro')">+ Nuevo cobro</button>
+      </div>
+      <div class="card">
+        <div class="form-panel" id="form-cobro">
+          <div class="form-grid form-row2">
+            <div class="form-group"><label class="form-label">Cliente / concepto</label><input class="form-input" id="c-nombre" placeholder="Ej: MAREF"></div>
+            <div class="form-group"><label class="form-label">Monto $</label><input class="form-input" id="c-monto" type="number" placeholder="0"></div>
+          </div>
+          <div class="form-grid form-row2">
+            <div class="form-group"><label class="form-label">Fecha esperada</label><input class="form-input" id="c-fecha" type="date"></div>
+            <div class="form-group"><label class="form-label">Notas</label><input class="form-input" id="c-notas" placeholder="Opcional"></div>
+          </div>
+          <div class="form-actions"><button class="btn" onclick="toggleForm('form-cobro')">Cancelar</button><button class="btn btn-accent" onclick="addCobro()">Guardar cobro</button></div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Cliente</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="cobros-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- PAGOS -->
+    <div class="page" id="page-pagos">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div><div class="page-title">Pagos</div><div class="page-sub">Obligaciones y vencimientos</div></div>
+        <button class="btn btn-accent" onclick="toggleForm('form-pago')">+ Nuevo pago</button>
+      </div>
+      <div class="card">
+        <div class="form-panel" id="form-pago">
+          <div class="form-grid form-row2">
+            <div class="form-group"><label class="form-label">Concepto</label><input class="form-input" id="p-nombre" placeholder="Ej: AFIP"></div>
+            <div class="form-group"><label class="form-label">Monto $</label><input class="form-input" id="p-monto" type="number" placeholder="0"></div>
+          </div>
+          <div class="form-grid form-row3">
+            <div class="form-group"><label class="form-label">Fecha límite</label><input class="form-input" id="p-fecha" type="date"></div>
+            <div class="form-group"><label class="form-label">Categoría</label>
+              <select class="form-input" id="p-cat">
+                <option>Impuesto/AFIP</option><option>Alquiler</option><option>Tarjeta</option>
+                <option>Préstamo/cuota</option><option>Proveedor</option><option>Sueldo</option><option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Notas</label><input class="form-input" id="p-notas" placeholder="Opcional"></div>
+          </div>
+          <div class="form-actions"><button class="btn" onclick="toggleForm('form-pago')">Cancelar</button><button class="btn btn-accent" onclick="addPago()">Guardar pago</button></div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Concepto</th><th>Categoría</th><th>Vence</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="pagos-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- FLUJO -->
+    <div class="page" id="page-flujo">
+      <div class="page-header"><div class="page-title">Flujo de caja</div><div class="page-sub">Proyección completa</div></div>
+      <div class="metrics" id="flujo-metrics"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Línea de tiempo</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Movimiento</th><th style="text-align:right">Saldo acum.</th></tr></thead>
+          <tbody id="flujo-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- IA -->
+    <div class="page" id="page-ia">
+      <div class="page-header"><div class="page-title">Asistente IA</div><div class="page-sub">Análisis inteligente de tu situación financiera</div></div>
+      <div class="card">
+        <div class="ai-wrap">
+          <div class="ai-messages" id="ai-messages"></div>
+          <div class="ai-footer">
+            <div class="ai-input-row">
+              <input class="ai-input" id="ai-input" placeholder="Preguntame lo que quieras sobre tus finanzas..." onkeydown="if(event.key==='Enter')sendAI()">
+              <button class="btn btn-accent" onclick="sendAI()">Enviar</button>
+            </div>
+            <div class="ai-quickbtns">
+              <button class="ai-qbtn" onclick="askQuick('¿Qué pago primero con lo que tengo disponible?')">¿Qué pago primero?</button>
+              <button class="ai-qbtn" onclick="askQuick('¿En algún momento quedo con saldo negativo? ¿Cuándo?')">¿Quedo en rojo?</button>
+              <button class="ai-qbtn" onclick="askQuick('Resumime el panorama general de mi flujo de caja')">Resumen general</button>
+              <button class="ai-qbtn" onclick="askQuick('¿Qué cobro es más crítico para cubrir mis compromisos?')">¿Cobro más crítico?</button>
+              <button class="ai-qbtn" onclick="askQuick('Dame una estrategia concreta para los próximos 7 días')">Plan 7 días</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG -->
+    <div class="page" id="page-config">
+      <div class="page-header"><div class="page-title">Configuración</div><div class="page-sub">Saldo y datos</div></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Saldo disponible actual</span></div>
+        <div class="card-body">
+          <p style="color:var(--text3);font-size:13px;margin-bottom:12px">Ajustá el saldo disponible. Esto afecta todas las proyecciones.</p>
+          <div class="disp-row">
+            <input class="disp-input" id="conf-saldo" type="number" placeholder="0">
+            <button class="btn btn-accent" onclick="saveSaldo()">Actualizar</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Datos</span></div>
+        <div class="card-body" style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" onclick="exportJSON()">↓ Exportar JSON</button>
+          <button class="btn btn-danger" onclick="resetData()">⚠ Borrar todo</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
