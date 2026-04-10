@@ -12,31 +12,47 @@ function fechaAcreditacion(c){ return c.tipo==='cheque'?addBusinessDays(c.fecha,
 
 function defaultData(){
   return {
-    disponible:3800000,
+    disponible:2096000,
     cobros:[
-      {id:1,nombre:'25 de Mayo 16-2',monto:350000,fecha:'2026-03-29',tipo:'cheque',cobrado:false,notas:''},
-      {id:2,nombre:'SAMA',monto:437360,fecha:'2026-03-31',tipo:'transferencia',cobrado:false,notas:''},
-      {id:3,nombre:'Chia Orrego',monto:420000,fecha:'2026-04-05',tipo:'transferencia',cobrado:false,notas:''},
-      {id:4,nombre:'MAREF',monto:1210000,fecha:'2026-04-09',tipo:'transferencia',cobrado:false,notas:''},
-      {id:5,nombre:'MYA',monto:2757815,fecha:'2026-04-10',tipo:'transferencia',cobrado:false,notas:''},
-      {id:6,nombre:'San Máximo',monto:3666542,fecha:'2026-04-11',tipo:'cheque',cobrado:false,notas:''},
-      {id:7,nombre:'Chia Orrego',monto:250000,fecha:'2026-04-13',tipo:'transferencia',cobrado:false,notas:''},
-      {id:8,nombre:'San Máximo',monto:3683710,fecha:'2026-04-13',tipo:'cheque',cobrado:false,notas:''}
+      {id:1,nombre:'Chia Orrego',monto:420000,fecha:'2026-04-05',tipo:'transferencia',cobrado:false,notas:''},
+      {id:2,nombre:'MAREF',monto:1210000,fecha:'2026-04-09',tipo:'transferencia',cobrado:false,notas:''},
+      {id:3,nombre:'MYA',monto:2757815,fecha:'2026-04-10',tipo:'transferencia',cobrado:false,notas:''},
+      {id:4,nombre:'San M\u00e1ximo',monto:3666542,fecha:'2026-04-11',tipo:'cheque',cobrado:false,notas:''},
+      {id:5,nombre:'Chia Orrego',monto:250000,fecha:'2026-04-13',tipo:'transferencia',cobrado:false,notas:''},
+      {id:6,nombre:'San M\u00e1ximo',monto:3683710,fecha:'2026-04-13',tipo:'cheque',cobrado:false,notas:''},
+      {id:7,nombre:'SAMA',monto:437360,fecha:'2026-04-16',tipo:'cheque',cobrado:false,notas:''},
+      {id:8,nombre:'SAN MAXIMO',monto:2180071,fecha:'2026-04-20',tipo:'cheque',cobrado:false,notas:''},
+      {id:9,nombre:'SAN MAXIMO',monto:3554828,fecha:'2026-04-21',tipo:'cheque',cobrado:false,notas:''},
+      {id:10,nombre:'QX',monto:850000,fecha:'2026-04-22',tipo:'cheque',cobrado:false,notas:''},
+      {id:11,nombre:'QX',monto:16614,fecha:'2026-04-23',tipo:'cheque',cobrado:false,notas:''},
+      {id:12,nombre:'QX',monto:660153,fecha:'2026-04-23',tipo:'cheque',cobrado:false,notas:''},
+      {id:13,nombre:'QX',monto:844832,fecha:'2026-04-24',tipo:'cheque',cobrado:false,notas:''},
+      {id:14,nombre:'MYA',monto:2757815,fecha:'2026-04-27',tipo:'cheque',cobrado:false,notas:''}
     ],
     pagos:[
-      {id:1,nombre:'Anticipo ganancias',monto:1120000,fecha:'2026-04-10',pagado:false,cat:'Impuesto/AFIP',prio:'urgente',notas:'Lo antes posible'},
-      {id:2,nombre:'Alq Vivian',monto:900000,fecha:'2026-04-10',pagado:false,cat:'Alquiler',prio:'urgente',notas:'Plazo máx 10'},
-      {id:3,nombre:'Tarjeta',monto:2500000,fecha:'2026-04-10',pagado:false,cat:'Tarjeta',prio:'urgente',notas:'Plazo máx 10'},
-      {id:4,nombre:'Mentoría',monto:1704000,fecha:'2026-04-10',pagado:false,cat:'Otro',prio:'normal',notas:'Plazo máx 10'},
-      {id:5,nombre:'Planes AFIP',monto:936832,fecha:'2026-04-09',pagado:false,cat:'Impuesto/AFIP',prio:'urgente',notas:''},
+      {id:1,nombre:'Planes AFIP',monto:936832,fecha:'2026-04-09',pagado:false,cat:'Impuesto/AFIP',prio:'urgente',notas:''},
+      {id:2,nombre:'Anticipo ganancias',monto:1120000,fecha:'2026-04-10',pagado:false,cat:'Impuesto/AFIP',prio:'urgente',notas:'Lo antes posible'},
+      {id:3,nombre:'Alq Vivian',monto:900000,fecha:'2026-04-10',pagado:false,cat:'Alquiler',prio:'urgente',notas:'Plazo m\u00e1x 10'},
+      {id:4,nombre:'Tarjeta',monto:2500000,fecha:'2026-04-10',pagado:false,cat:'Tarjeta',prio:'urgente',notas:'Plazo m\u00e1x 10'},
+      {id:5,nombre:'Mentor\u00eda',monto:1704000,fecha:'2026-04-10',pagado:true,cat:'Otro',prio:'normal',notas:'Plazo m\u00e1x 10'},
       {id:6,nombre:'Cheques San Juan y Solis',monto:600000,fecha:'2026-04-10',pagado:false,cat:'Proveedor',prio:'urgente',notas:'359390+359407'},
-      {id:7,nombre:'Alquiler Ramiro',monto:990000,fecha:'2026-04-15',pagado:false,cat:'Alquiler',prio:'normal',notas:'Plazo máx 15'}
+      {id:7,nombre:'Alquiler Ramiro',monto:990000,fecha:'2026-04-15',pagado:false,cat:'Alquiler',prio:'normal',notas:'Plazo m\u00e1x 15'},
+      {id:8,nombre:'Galeno',monto:560000,fecha:'2026-04-15',pagado:false,cat:'Otro',prio:'normal',notas:''},
+      {id:9,nombre:'Omint',monto:240000,fecha:'2026-04-15',pagado:false,cat:'Otro',prio:'normal',notas:''},
+      {id:10,nombre:'pressa',monto:80000,fecha:'2026-04-15',pagado:false,cat:'Otro',prio:'normal',notas:''},
+      {id:11,nombre:'tarjeta nacho',monto:800000,fecha:'2026-04-15',pagado:false,cat:'Tarjeta',prio:'normal',notas:''},
+      {id:12,nombre:'planes 16/4',monto:140000,fecha:'2026-04-16',pagado:false,cat:'Impuesto/AFIP',prio:'normal',notas:''},
+      {id:13,nombre:'sueldos x4',monto:1200000,fecha:'2026-04-17',pagado:false,cat:'Sueldo',prio:'urgente',notas:''},
+      {id:14,nombre:'prestamo',monto:560000,fecha:'2026-04-23',pagado:false,cat:'Pr\u00e9stamo/cuota',prio:'normal',notas:''},
+      {id:15,nombre:'Cheque seguro',monto:1705000,fecha:'2026-04-26',pagado:false,cat:'Otro',prio:'normal',notas:'seguro'},
+      {id:16,nombre:'2544 Cuota',monto:3280000,fecha:'2026-04-29',pagado:false,cat:'Pr\u00e9stamo/cuota',prio:'normal',notas:''},
+      {id:17,nombre:'contadora',monto:365000,fecha:'2026-04-29',pagado:false,cat:'Otro',prio:'normal',notas:''}
     ]
   };
 }
 
-let data=(() => { try{const d=localStorage.getItem('flujo_v2');return d?JSON.parse(d):defaultData();}catch(e){return defaultData();} })();
-function save(){localStorage.setItem('flujo_v2',JSON.stringify(data));updateTopbar();}
+let data=(() => { try{const d=localStorage.getItem('flujo_v3');return d?JSON.parse(d):defaultData();}catch(e){return defaultData();} })();
+function save(){localStorage.setItem('flujo_v3',JSON.stringify(data));updateTopbar();}
 function updateTopbar(){document.getElementById('top-saldo').textContent=fmt(data.disponible);}
 
 // FLUJO CALC
@@ -881,7 +897,7 @@ function cheqDepositar() {
 // ── CONFIG ──────────────────────────────────────────────────
 function saveSaldo(){const v=parseFloat(document.getElementById('conf-saldo').value);if(isNaN(v))return alert('Número inválido');data.disponible=v;save();alert('Saldo actualizado a '+fmt(v));}
 function exportJSON(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-'+TODAY+'.json';a.click();}
-function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem('flujo_v2');location.reload();}
+function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem('flujo_v3');location.reload();}
 
 // INIT
 updateTopbar();
