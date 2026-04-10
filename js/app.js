@@ -12,7 +12,7 @@ function fechaAcreditacion(c){ return c.tipo==='cheque'?addBusinessDays(c.fecha,
 
 function defaultData(){
   return {
-    disponible:2096000,
+    disponible:0,
     cobros:[
       {id:1,nombre:'Chia Orrego',monto:420000,fecha:'2026-04-05',tipo:'transferencia',cobrado:false,notas:''},
       {id:2,nombre:'MAREF',monto:1210000,fecha:'2026-04-09',tipo:'transferencia',cobrado:false,notas:''},
@@ -47,12 +47,29 @@ function defaultData(){
       {id:15,nombre:'Cheque seguro',monto:1705000,fecha:'2026-04-26',pagado:false,cat:'Otro',prio:'normal',notas:'seguro'},
       {id:16,nombre:'2544 Cuota',monto:3280000,fecha:'2026-04-29',pagado:false,cat:'Pr\u00e9stamo/cuota',prio:'normal',notas:''},
       {id:17,nombre:'contadora',monto:365000,fecha:'2026-04-29',pagado:false,cat:'Otro',prio:'normal',notas:''}
-    ]
+    ],
+    costos: [
+      {id:1, nombre:'Vivian', monto:240000, cat:'Laboral', rec:'semanal', dia:'1', notas:'Todos los lunes'}
+    ],
+    ypf: {
+      precioPorLitro: 2142,
+      choferes: [
+        {id:1, nombre:'Federico'},
+        {id:2, nombre:'Mauricio'}
+      ],
+      cargas: [
+        {id:101, remito:'8650', fecha:'2026-04-10', chofer:'Federico', litros:537, km:0, precioPorLitro:2142, importe:1150254, notas:''},
+        {id:102, remito:'8628', fecha:'2026-04-08', chofer:'Mauricio', litros:123, km:0, precioPorLitro:2142, importe:263466, notas:''},
+        {id:103, remito:'8621', fecha:'2026-04-05', chofer:'Federico', litros:173, km:0, precioPorLitro:2142, importe:370566, notas:''},
+        {id:104, remito:'8608', fecha:'2026-04-03', chofer:'Mauricio', litros:277, km:0, precioPorLitro:2142, importe:593334, notas:''},
+        {id:105, remito:'8605', fecha:'2026-04-03', chofer:'Mauricio', litros:461, km:0, precioPorLitro:2142, importe:987462, notas:''}
+      ]
+    }
   };
 }
 
-let data=(() => { try{const d=localStorage.getItem('flujo_v3');return d?JSON.parse(d):defaultData();}catch(e){return defaultData();} })();
-function save(){localStorage.setItem('flujo_v3',JSON.stringify(data));updateTopbar();}
+let data=(() => { try{const d=localStorage.getItem('flujo_v5');const parsed=d?JSON.parse(d):defaultData();if(!parsed.ypf)parsed.ypf={precioPorLitro:2142,cargas:[]};return parsed;}catch(e){return defaultData();} })();
+function save(){localStorage.setItem('flujo_v5',JSON.stringify(data));updateTopbar();}
 function updateTopbar(){document.getElementById('top-saldo').textContent=fmt(data.disponible);}
 
 // FLUJO CALC
@@ -92,6 +109,9 @@ function navigate(page,el){
   if(page==='flujo') renderFlujo();
   if(page==='config') document.getElementById('conf-saldo').value=data.disponible;
   if(page==='simulador') { if(simOps.length===0){simSaldoInicial=data.disponible;document.getElementById('sim-fecha').value=TODAY;} renderSimulador(); }
+  if(page==='flujo-fondos') renderFF();
+  if(page==='ypf') renderYPF();
+  if(page==='costos') renderCostos();
 }
 function toggleForm(id){document.getElementById(id).classList.toggle('open');}
 
@@ -105,11 +125,16 @@ function renderDashboard(){
   const saldoFinal=flujo.length?flujo[flujo.length-1].saldo:data.disponible;
   const minSaldo=Math.min(...flujo.map(f=>f.saldo));
 
+  const mesActualYPF = TODAY.slice(0,7);
+  const ypfMes = data.ypf?.cargas?.filter(c=>c.fecha.startsWith(mesActualYPF)).reduce((a,c)=>a+c.importe,0)||0;
+  const ypfCargasMes = data.ypf?.cargas?.filter(c=>c.fecha.startsWith(mesActualYPF)).length||0;
   document.getElementById('dash-metrics').innerHTML=`
     <div class="metric-card green"><div class="metric-label">Disponible hoy</div><div class="metric-value green">${fmt(data.disponible)}</div><div class="metric-sub">en banco + efectivo</div></div>
     <div class="metric-card blue"><div class="metric-label">Cobros pendientes</div><div class="metric-value blue">${fmt(totalCobros)}</div><div class="metric-sub">${data.cobros.filter(c=>!c.cobrado).length} cobros</div></div>
     <div class="metric-card red"><div class="metric-label">Pagos pendientes</div><div class="metric-value red">${fmt(totalPagos)}</div><div class="metric-sub">${data.pagos.filter(p=>!p.pagado).length} obligaciones</div></div>
     <div class="metric-card ${saldoFinal>=0?'green':'red'}"><div class="metric-label">Saldo proyectado</div><div class="metric-value ${saldoFinal>=0?'green':'red'}">${fmt(saldoFinal)}</div><div class="metric-sub">mín ${fmt(minSaldo)}</div></div>
+    ${ypfMes>0?`<div class="metric-card amber"><div class="metric-label">YPF este mes</div><div class="metric-value amber">${fmt(ypfMes)}</div><div class="metric-sub">${ypfCargasMes} carga${ypfCargasMes!==1?'s':''}</div></div>`:''}
+    <div class="metric-card red"><div class="metric-label">Costos fijos/mes</div><div class="metric-value red" id="dash-cf-total">—</div></div>
   `;
 
   // ALERTAS INTELIGENTES
@@ -160,6 +185,9 @@ function renderDashboard(){
 
   updateNavBadge();
   renderCharts(flujo);
+  // Update CF total
+  const cfEl = document.getElementById('dash-cf-total');
+  if(cfEl) cfEl.textContent = fmt(Math.round((data.costosFijos||[]).reduce((a,c)=>a+cfMensual(c),0)));
 }
 
 // Order for "qué puedo pagar hoy" — user can drag to reorder
@@ -339,6 +367,25 @@ function semanaSeleccionarDia(fecha) {
 }
 
 // ── COBROS ──────────────────────────────────────────────────
+let cobrosClientesOpen = false;
+let cobrosEndososOpen = false;
+
+function cobrosToggleEndosos() {
+  cobrosEndososOpen = !cobrosEndososOpen;
+  const body = document.getElementById('cobros-endosos-body');
+  const tog  = document.getElementById('cobros-endosos-toggle');
+  if(body) body.style.display = cobrosEndososOpen ? '' : 'none';
+  if(tog)  tog.textContent = cobrosEndososOpen ? '▲ ocultar' : '▼ ver';
+}
+
+function cobrosToggleClientes() {
+  cobrosClientesOpen = !cobrosClientesOpen;
+  const body = document.getElementById('cobros-clientes-body');
+  const tog = document.getElementById('cobros-clientes-toggle');
+  if(body) body.style.display = cobrosClientesOpen ? '' : 'none';
+  if(tog) tog.textContent = cobrosClientesOpen ? '▲ ocultar' : '▼ ver';
+}
+
 function cobrosSetFiltro(f, el) {
   cobrosFiltro = f;
   document.querySelectorAll('.cfbtn').forEach(b => b.classList.remove('active'));
@@ -398,21 +445,105 @@ function renderCobros(){
   const histCard = document.getElementById('cobros-historial-card');
   if(histCard) histCard.style.display = paid.length ? '' : 'none';
   const histTbody = document.getElementById('cobros-historial-tbody');
-  if(histTbody) histTbody.innerHTML = paid.map(c => {
-    const neto = calcNetoIngreso(c);
+  // Split paid into depositados/transferencias and endosados
+  const depositados = paid.filter(c=>c.modalidadCobro!=='endosado');
+  const endosados   = paid.filter(c=>c.modalidadCobro==='endosado');
+
+  const elDep = document.getElementById('cobros-hist-depositados');
+  const elEnd = document.getElementById('cobros-hist-endosados');
+  const wrapDep = document.getElementById('hist-depositados-wrap');
+  const wrapEnd = document.getElementById('hist-endosados-wrap');
+
+  if(wrapDep) wrapDep.style.display = depositados.length ? '' : 'none';
+  if(elDep) elDep.innerHTML = depositados.map(c => {
+    const neto = c.netoAcreditado ?? calcNetoIngreso(c);
     const tipoBadge = c.tipo==='cheque'?'<span class="badge badge-amber">Cheque</span>':c.tipo==='efectivo'?'<span class="badge badge-gray">Efectivo</span>':'<span class="badge badge-blue">Transfer</span>';
     const acredita = fechaAcreditacion(c);
     const esCheque = c.tipo==='cheque';
     return `<tr>
-      <td>${c.nombre}${c.notas?`<br><span style="color:var(--text3);font-size:11px">${c.notas}</span>`:''}</td>
-      <td class="mono" style="font-size:12px;color:var(--text3)">${fmtDate(c.fecha)}</td>
-      <td class="mono" style="font-size:12px${esCheque?';color:var(--amber)':''}">${fmtDate(acredita)}</td>
-      <td>${tipoBadge}${c.modalidadCobro ? `<br><span style="font-size:10px;color:var(--text3)">${c.modalidadCobro}${c.endosadoA?' → '+c.endosadoA:''}</span>` : ''}</td>
-      <td class="mono" style="color:var(--text3)">${fmt(c.monto)}</td>
-      <td class="mono" style="color:var(--accent);font-weight:500">${fmt(neto)}</td>
-      <td><button class="btn btn-sm" onclick="toggleCobro(${c.id})">Deshacer</button></td>
+      <td style="padding:10px 16px;font-size:13px">${c.nombre}${c.notas?`<br><span style="color:var(--text3);font-size:11px">${c.notas}</span>`:''}</td>
+      <td class="mono" style="font-size:12px;color:var(--text3);padding:10px 16px">${fmtDate(c.fecha)}</td>
+      <td class="mono" style="font-size:12px${esCheque?';color:var(--amber)':''}; padding:10px 16px">${fmtDate(acredita)}</td>
+      <td style="padding:10px 16px">${tipoBadge}</td>
+      <td class="mono" style="color:var(--text3);padding:10px 16px">${fmt(c.monto)}</td>
+      <td class="mono" style="color:var(--accent);font-weight:500;padding:10px 16px">${fmt(neto)}</td>
+      <td style="padding:10px 16px"><button class="btn btn-sm" onclick="toggleCobro(${c.id})">Deshacer</button></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="7" class="empty">Sin cobros registrados</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="empty" style="padding:16px">Sin cobros depositados</td></tr>';
+
+  if(wrapEnd) wrapEnd.style.display = endosados.length ? '' : 'none';
+  if(elEnd) elEnd.innerHTML = endosados.map(c => {
+    return `<tr>
+      <td style="padding:10px 16px;font-size:13px;font-weight:500">${c.nombre}</td>
+      <td class="mono" style="font-size:12px;color:var(--text3);padding:10px 16px">${fmtDate(c.fecha)}</td>
+      <td class="mono" style="padding:10px 16px">${fmt(c.monto)}</td>
+      <td style="padding:10px 16px">
+        <span style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(183,96,10,.2);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500">
+          ↔ ${c.endosadoA || 'sin especificar'}
+        </span>
+      </td>
+      <td style="padding:10px 16px"><button class="btn btn-sm" onclick="toggleCobro(${c.id})">Deshacer</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty" style="padding:16px">Sin cheques endosados</td></tr>';
+
+  // Totales por cliente
+  const clientCard = document.getElementById('cobros-clientes-card');
+  const clientLista = document.getElementById('cobros-clientes-lista');
+  const todosLosCobrosPendientes = data.cobros.filter(c=>!c.cobrado);
+  if(clientCard) clientCard.style.display = todosLosCobrosPendientes.length ? '' : 'none';
+  // Endosos
+  const endosadosTodos = data.cobros.filter(c=>c.cobrado&&c.modalidadCobro==='endosado');
+  const endCard = document.getElementById('cobros-endosos-card');
+  const endTbody = document.getElementById('cobros-endosos-tbody');
+  if(endCard) endCard.style.display = endosadosTodos.length ? '' : 'none';
+  if(endTbody) endTbody.innerHTML = endosadosTodos.length ? endosadosTodos.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map(c=>`
+    <tr>
+      <td><span style="font-weight:500">${c.nombre}</span>${c.notas?`<br><span style="font-size:11px;color:var(--text3)">${c.notas}</span>`:''}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--text3)">${fmtDate(c.fecha)}</td>
+      <td style="font-family:var(--font-mono)">${fmt(c.monto)}</td>
+      <td><span style="font-weight:500;color:var(--amber)">${c.endosadoA||'—'}</span></td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--text3)">${fmtDate(fechaAcreditacion(c))}</td>
+    </tr>`).join('') : '';
+
+  if(clientLista) {
+    const porCliente = {};
+    todosLosCobrosPendientes.forEach(c => {
+      const key = c.nombre;
+      if(!porCliente[key]) porCliente[key] = {bruto:0, neto:0, count:0, cheques:0};
+      porCliente[key].bruto += c.monto;
+      porCliente[key].neto += calcNetoIngreso(c);
+      porCliente[key].count++;
+      if(c.tipo==='cheque') porCliente[key].cheques++;
+    });
+    const sorted = Object.entries(porCliente).sort((a,b)=>b[1].bruto-a[1].bruto);
+    const totalBruto = sorted.reduce((a,[,v])=>a+v.bruto, 0);
+    const totalNeto  = sorted.reduce((a,[,v])=>a+v.neto,  0);
+    clientLista.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr>
+          <th style="text-align:left;padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border)">Cliente</th>
+          <th style="text-align:center;padding:8px 12px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border)">Cobros</th>
+          <th style="text-align:right;padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border)">Bruto</th>
+          <th style="text-align:right;padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border)">Neto a acreditar</th>
+          <th style="text-align:right;padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border)">Retenciones</th>
+        </tr></thead>
+        <tbody>
+          ${sorted.map(([nombre,v])=>`<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px;font-weight:500">${nombre}${v.cheques?`<br><span style="font-size:10px;color:var(--text3)">${v.cheques} cheque${v.cheques>1?'s':''}</span>`:''}</td>
+            <td style="padding:10px 12px;text-align:center;color:var(--text3);font-size:13px">${v.count}</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);color:var(--text3)">${fmt(v.bruto)}</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);font-weight:500;color:var(--accent)">${fmt(v.neto)}</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--red)">-${fmt(v.bruto-v.neto)}</td>
+          </tr>`).join('')}
+          <tr style="background:var(--bg3)">
+            <td style="padding:10px 16px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)" colspan="2">Total</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);font-weight:500;color:var(--text3)">${fmt(totalBruto)}</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);font-weight:500;color:var(--accent)">${fmt(totalNeto)}</td>
+            <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);font-size:11px;color:var(--red)">-${fmt(totalBruto-totalNeto)}</td>
+          </tr>
+        </tbody>
+      </table>`;
+  }
 }
 
 function addCobro(){
@@ -462,10 +593,16 @@ function cobrarCheque(id, modalidad, destinatario) {
   if(!c) return;
   c.cobrado = true;
   c.modalidadCobro = modalidad;
-  if(destinatario) c.endosadoA = destinatario; // 'depositado' | 'endosado'
-  const neto = calcNetoIngreso(c);
-  c.netoAcreditado = neto;
-  data.disponible += neto;
+  if(destinatario) c.endosadoA = destinatario;
+  if(modalidad === 'endosado') {
+    // Endoso: el cheque sale de tus manos, NO acredita en tu cuenta
+    c.netoAcreditado = 0;
+  } else {
+    // Depositado: acredita el neto con retenciones
+    const neto = calcNetoIngreso(c);
+    c.netoAcreditado = neto;
+    data.disponible += neto;
+  }
   save(); renderCobros();
 }
 
@@ -542,26 +679,6 @@ function togglePago(id){const p=data.pagos.find(x=>x.id===id);if(!p)return;p.pag
 function cambiarPrio(id,val){const p=data.pagos.find(x=>x.id===id);if(!p)return;p.prio=val;save();renderPagos();}
 function delPago(id){if(!confirm('¿Eliminar este pago?'))return;data.pagos=data.pagos.filter(x=>x.id!==id);save();renderPagos();}
 
-// ── FLUJO ──────────────────────────────────────────────────
-function renderFlujo(){
-  const flujo=calcFlujo();
-  const totalIn=data.disponible+data.cobros.filter(c=>!c.cobrado).reduce((a,c)=>a+c.monto,0);
-  const totalOut=data.pagos.filter(p=>!p.pagado).reduce((a,p)=>a+p.monto,0);
-  const saldoFinal=flujo.length?flujo[flujo.length-1].saldo:data.disponible;
-  document.getElementById('flujo-metrics').innerHTML=`
-    <div class="metric-card green"><div class="metric-label">Total ingresos</div><div class="metric-value green">${fmt(totalIn)}</div></div>
-    <div class="metric-card red"><div class="metric-label">Total egresos</div><div class="metric-value red">${fmt(totalOut)}</div></div>
-    <div class="metric-card ${saldoFinal>=0?'green':'red'}"><div class="metric-label">Resultado neto</div><div class="metric-value ${saldoFinal>=0?'green':'red'}">${fmt(saldoFinal)}</div></div>
-  `;
-  document.getElementById('flujo-tbody').innerHTML=flujo.map(f=>`
-    <tr>
-      <td style="font-family:var(--font-mono);font-size:12px;color:var(--text3)">${fmtDate(f.fecha)}</td>
-      <td>${f.concepto}</td>
-      <td>${f.tipo==='cobro'?'<span class="badge badge-green">Cobro</span>':f.tipo==='pago'?'<span class="badge badge-red">Pago</span>':'<span class="badge badge-blue">Inicial</span>'}</td>
-      <td class="${f.monto>=0?'flujo-pos':'flujo-neg'}">${f.monto>0?'+':''}${fmt(f.monto)}</td>
-      <td class="${f.saldo>=0?'flujo-saldo-pos':'flujo-saldo-neg'}">${fmt(f.saldo)}</td>
-    </tr>`).join('');
-}
 
 
 // ── SIMULADOR ──────────────────────────────────────────────
@@ -894,10 +1011,502 @@ function cheqDepositar() {
   }, 1800);
 }
 
+// ── FLUJO DE FONDOS ──────────────────────────────────────────
+let ffYear = parseInt(TODAY.slice(0,4));
+let ffMonth = parseInt(TODAY.slice(5,7));
+let ffDragId = null;
+let ffDragType = null; // 'pago'
+
+// pagos con fechaPago separada de fecha vencimiento
+// Stored in data.pagos as p.fechaPago (puede diferir de p.fecha)
+function ffGetFechaPago(p) { return p.fechaPago || p.fecha; }
+
+function ffMes(dir) {
+  ffMonth += dir;
+  if(ffMonth > 12){ ffMonth=1; ffYear++; }
+  if(ffMonth < 1){ ffMonth=12; ffYear--; }
+  renderFF();
+}
+function ffHoy(){ ffYear=parseInt(TODAY.slice(0,4)); ffMonth=parseInt(TODAY.slice(5,7)); renderFF(); }
+
+function renderFF() {
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('ff-mes-label').textContent = MESES[ffMonth-1]+' '+ffYear;
+
+  const mesStr = ffYear+'-'+(ffMonth<10?'0':'')+ffMonth;
+
+  // Build all days of month
+  const firstDay = new Date(ffYear, ffMonth-1, 1);
+  const lastDay = new Date(ffYear, ffMonth, 0);
+  // Start from Monday
+  let startDow = firstDay.getDay(); // 0=Sun
+  startDow = startDow === 0 ? 6 : startDow-1; // Mon=0
+
+  // Calc running saldo for each day of month
+  const allDays = {};
+  let saldo = data.disponible;
+  // bring saldo up to start of month
+  const monthStart = mesStr+'-01';
+  // apply all events before this month
+  const allEvents = [];
+  data.cobros.filter(c=>!c.cobrado).forEach(c=>allEvents.push({fecha:fechaAcreditacion(c),monto:calcNetoIngreso(c),tipo:'cobro'}));
+  data.pagos.filter(p=>!p.pagado).forEach(p=>allEvents.push({fecha:ffGetFechaPago(p),monto:-p.monto,tipo:'pago',id:p.id}));
+  allEvents.sort((a,b)=>a.fecha.localeCompare(b.fecha));
+
+  // pre-month events
+  allEvents.filter(e=>e.fecha<monthStart).forEach(e=>saldo+=e.monto);
+
+  // per-day events in month
+  for(let d=1;d<=lastDay.getDate();d++){
+    const ds=(ffYear+'-'+(ffMonth<10?'0':'')+ffMonth+'-'+(d<10?'0':'')+d);
+    const evs=allEvents.filter(e=>e.fecha===ds);
+    evs.forEach(e=>saldo+=e.monto);
+    allDays[ds]={saldo,cobros:[],pagos:[]};
+  }
+  // populate cobros/pagos per day
+  data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr)).forEach(c=>{
+    const d=fechaAcreditacion(c);
+    if(allDays[d]) allDays[d].cobros.push(c);
+  });
+  data.pagos.filter(p=>!p.pagado&&ffGetFechaPago(p).startsWith(mesStr)).forEach(p=>{
+    const d=ffGetFechaPago(p);
+    if(allDays[d]) allDays[d].pagos.push(p);
+  });
+
+  // Metrics
+  const totalCobros = data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr)).reduce((a,c)=>a+calcNetoIngreso(c),0);
+  const totalPagos  = data.pagos.filter(p=>!p.pagado&&ffGetFechaPago(p).startsWith(mesStr)).reduce((a,p)=>a+p.monto,0);
+  const saldoFinal  = Object.values(allDays).length ? Object.values(allDays)[Object.values(allDays).length-1].saldo : saldo;
+  document.getElementById('ff-metrics').innerHTML = `
+    <div class="metric-card blue"><div class="metric-label">Cobros del mes</div><div class="metric-value blue">${fmt(totalCobros)}</div></div>
+    <div class="metric-card red"><div class="metric-label">Pagos del mes</div><div class="metric-value red">${fmt(totalPagos)}</div></div>
+    <div class="metric-card ${saldoFinal>=0?'green':'red'}"><div class="metric-label">Saldo fin de mes</div><div class="metric-value ${saldoFinal>=0?'green':'red'}">${fmt(saldoFinal)}</div></div>
+  `;
+
+  // Calendar grid
+  const grid = document.getElementById('ff-cal-grid');
+  let cells = '';
+  // empty cells before first day
+  for(let i=0;i<startDow;i++) cells+=`<div class="ff-day other-month"></div>`;
+  for(let d=1;d<=lastDay.getDate();d++){
+    const ds=(ffYear+'-'+(ffMonth<10?'0':'')+ffMonth+'-'+(d<10?'0':'')+d);
+    const info=allDays[ds]||{saldo:0,cobros:[],pagos:[]};
+    const isToday=ds===TODAY;
+    const isNeg=info.saldo<0;
+    const costosRec = cvGetCostosDelDia(ds);
+    const chips=[
+      ...info.cobros.map(c=>`<div class="ff-chip cobro" draggable="false" title="${c.nombre}: ${fmt(calcNetoIngreso(c))}">↓ ${c.nombre.slice(0,10)}</div>`),
+      ...costosRec.map(cv=>`<div class="ff-chip pago" draggable="false" style="opacity:.7" title="${cv.nombre}: ${fmt(cv.monto)} (recurrente)">↻ ${cv.nombre.slice(0,10)}</div>`),
+      ...info.pagos.map(p=>{
+        const overdue=p.fecha<ds;
+        return`<div class="ff-chip ${overdue?'pago-vencido':'pago'}" draggable="true" 
+          ondragstart="ffDragStart(event,${p.id})" 
+          ondragend="ffDragEnd(event)"
+          title="${p.nombre}: ${fmt(p.monto)}${overdue?' ⚠ vence '+fmtDate(p.fecha):''}">
+          ↑ ${p.nombre.slice(0,10)}${overdue?' ⚑':''}
+        </div>`;
+      })
+    ].join('');
+    cells+=`<div class="ff-day${isToday?' today':''}${isNeg?' negative':''}"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="ffDrop(event,'${ds}')">
+      <div class="ff-day-num${isToday?' today-num':''}">${d}</div>
+      <div class="ff-day-saldo ${info.saldo>=0?'pos':'neg'}">${(info.saldo/1000000).toFixed(2)}M</div>
+      ${chips}
+    </div>`;
+  }
+  // fill remaining
+  const total=startDow+lastDay.getDate();
+  const rem=(7-total%7)%7;
+  for(let i=0;i<rem;i++) cells+=`<div class="ff-day other-month"></div>`;
+  grid.innerHTML=cells;
+
+  // Unscheduled (pagos fuera del mes visible o sin fecha asignada)
+  const unsch = data.pagos.filter(p=>!p.pagado&&!ffGetFechaPago(p).startsWith(mesStr)&&ffGetFechaPago(p)>=TODAY);
+  document.getElementById('ff-unscheduled').innerHTML = unsch.length ?
+    unsch.sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(p=>`
+      <div class="ff-unsch-chip" draggable="true"
+        ondragstart="ffDragStart(event,${p.id})"
+        ondragend="ffDragEnd(event)">
+        <div>
+          <div class="ff-unsch-name">${p.nombre}</div>
+          <div class="ff-unsch-vto">vto ${fmtDate(p.fecha)} · ${p.cat}</div>
+        </div>
+        <div class="ff-unsch-monto">${fmt(p.monto)}</div>
+      </div>`).join('') :
+    '<div style="padding:8px;font-size:11px;color:var(--text3)">Todos los pagos están en el mes</div>';
+
+  // Cobros del mes en panel
+  const cobrosMes = data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr));
+  document.getElementById('ff-cobros-mes').innerHTML = cobrosMes.length ?
+    cobrosMes.sort((a,b)=>fechaAcreditacion(a).localeCompare(fechaAcreditacion(b))).map(c=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px">
+        <div>
+          <div style="font-weight:500">${c.nombre}</div>
+          <div style="font-size:10px;color:var(--text3)">${fmtDate(fechaAcreditacion(c))} · ${c.tipo}</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
+      </div>`).join('') :
+    '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros este mes</div>';
+}
+
+function ffDragStart(event, pagoId) {
+  ffDragId = pagoId;
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function ffDragEnd(event) {
+  document.querySelectorAll('.ff-day.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  ffDragId = null;
+}
+
+function ffDrop(event, fecha) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('drag-over');
+  if(ffDragId===null) return;
+  const p = data.pagos.find(x=>x.id===ffDragId);
+  if(!p) return;
+  p.fechaPago = fecha;
+  save();
+  renderFF();
+}
+
+// ── YPF ──────────────────────────────────────────────────────
+function ypfGetPrecio(){ return parseFloat(document.getElementById('ypf-precio')?.value||'2142')||2142; }
+
+function renderYPF(){
+  if(!data.ypf) data.ypf = {precioPorLitro:2142, cargas:[], choferes:[]};
+  if(!data.ypf.choferes) data.ypf.choferes=[];
+  const precioEl = document.getElementById('ypf-precio');
+  if(precioEl && data.ypf.precioPorLitro) precioEl.value = data.ypf.precioPorLitro;
+  document.getElementById('ypf-fecha').value = TODAY;
+  ypfRenderChoferes();
+  ypfRender();
+}
+
+function ypfToggleChoferes(){
+  const f = document.getElementById('ypf-choferes-form');
+  if(!f) return;
+  f.style.display = f.style.display==='none' ? 'block' : 'none';
+  if(f.style.display==='block') setTimeout(()=>document.getElementById('ypf-chofer-nombre')?.focus(),50);
+}
+
+function ypfAgregarChofer(){
+  if(!data.ypf.choferes) data.ypf.choferes=[];
+  const input = document.getElementById('ypf-chofer-nombre');
+  const n = input?.value.trim();
+  if(!n) return;
+  if(data.ypf.choferes.find(c=>c.nombre.toLowerCase()===n.toLowerCase())) return alert('Ya existe ese chofer');
+  data.ypf.choferes.push({id:Date.now(), nombre:n});
+  save(); ypfRenderChoferes(); ypfToggleChoferes();
+  if(input) input.value='';
+}
+
+function ypfEliminarChofer(id){
+  if(!confirm('Eliminar chofer?')) return;
+  data.ypf.choferes = data.ypf.choferes.filter(c=>c.id!==id);
+  save(); ypfRenderChoferes(); ypfRender();
+}
+
+function ypfRenderChoferes(){
+  const lista = document.getElementById('ypf-choferes-lista');
+  const sel = document.getElementById('ypf-chofer');
+  if(!lista) return;
+  const ch = data.ypf.choferes||[];
+  lista.innerHTML = ch.length
+    ? ch.map(c=>`<div style="display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--border);border-radius:100px;padding:4px 12px;font-size:12px;margin:2px">
+        <span>${c.nombre}</span>
+        <button onclick="ypfEliminarChofer(${c.id})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;line-height:1">✕</button>
+      </div>`).join('')
+    : '<span style="font-size:12px;color:var(--text3)">Sin choferes cargados</span>';
+  if(sel){
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Sin asignar —</option>' + ch.map(c=>`<option value="${c.nombre}"${c.nombre===cur?' selected':''}>${c.nombre}</option>`).join('');
+  }
+}
+
+function ypfRender(){
+  if(!data.ypf) data.ypf = {precioPorLitro:2142, cargas:[], choferes:[]};
+  const precio = ypfGetPrecio();
+  const cargas = [...data.ypf.cargas].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const totalLitros = cargas.reduce((a,c)=>a+c.litros,0);
+  const totalImporte = cargas.reduce((a,c)=>a+c.importe,0);
+  const totalKm = cargas.reduce((a,c)=>a+(c.km||0),0);
+  const consumoTotal = totalKm>0 ? (totalLitros/totalKm*100) : null;
+  const mesActual = TODAY.slice(0,7);
+  const cargasMes = cargas.filter(c=>c.fecha.startsWith(mesActual));
+  const litrosMes = cargasMes.reduce((a,c)=>a+c.litros,0);
+  const importeMes = cargasMes.reduce((a,c)=>a+c.importe,0);
+  const kmMes = cargasMes.reduce((a,c)=>a+(c.km||0),0);
+  const consumoMes = kmMes>0 ? (litrosMes/kmMes*100) : null;
+
+  document.getElementById('ypf-metrics').innerHTML = `
+    <div class="metric-card blue"><div class="metric-label">Cargas este mes</div><div class="metric-value blue">${cargasMes.length}</div><div class="metric-sub">${Math.round(litrosMes).toLocaleString('es-AR')} L · ${Math.round(kmMes).toLocaleString('es-AR')} km</div></div>
+    <div class="metric-card red"><div class="metric-label">Gasto este mes</div><div class="metric-value red">${fmt(importeMes)}</div></div>
+    <div class="metric-card ${consumoMes?'amber':'blue'}"><div class="metric-label">C/100km este mes</div><div class="metric-value ${consumoMes?'amber':'blue'}">${consumoMes?consumoMes.toFixed(1)+' L':'—'}</div><div class="metric-sub">${consumoTotal?'Histórico: '+consumoTotal.toFixed(1)+' L/100km':''}</div></div>
+    <div class="metric-card green"><div class="metric-label">Precio actual</div><div class="metric-value green">${fmt(precio)}<span style="font-size:12px;font-weight:400">/L</span></div></div>
+  `;
+
+  document.getElementById('ypf-tbody').innerHTML = cargas.length ? cargas.map(c=>{
+    const c100 = c.km&&c.litros ? (c.litros/c.km*100).toFixed(1) : '—';
+    return `<tr>
+      <td style="font-family:var(--font-mono);font-size:12px">${c.remito||'—'}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--text3)">${fmtDate(c.fecha)}</td>
+      <td style="font-size:13px;font-weight:500">${c.chofer||'—'}</td>
+      <td style="font-family:var(--font-mono)">${(c.litros||0).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:var(--text3)">${c.km?Math.round(c.km).toLocaleString('es-AR'):'—'}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:${c.km?'var(--blue)':'var(--text3)'};font-weight:${c.km?'500':'400'}">${c100}</td>
+      <td style="font-family:var(--font-mono);font-weight:500;color:var(--red)">${fmt(c.importe)}</td>
+      <td style="font-size:12px;color:var(--text3)">${c.notas||'—'}</td>
+      <td><button class="btn btn-sm btn-icon btn-danger" onclick="ypfEliminar(${c.id})">✕</button></td>
+    </tr>`;}).join('')
+    : '<tr><td colspan="9" class="empty"><div class="empty-icon">⛽</div>Sin cargas registradas</td></tr>';
+
+  document.getElementById('ypf-tfoot').innerHTML = cargas.length ? `
+    <tr style="background:var(--bg3)">
+      <td colspan="3" style="padding:10px 16px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Total</td>
+      <td style="padding:10px 16px;font-family:var(--font-mono);font-weight:500">${Math.round(totalLitros).toLocaleString('es-AR')} L</td>
+      <td style="padding:10px 16px;font-family:var(--font-mono);font-size:12px;color:var(--text3)">${Math.round(totalKm).toLocaleString('es-AR')} km</td>
+      <td style="padding:10px 16px;font-family:var(--font-mono);font-size:12px;color:var(--blue);font-weight:500">${consumoTotal?consumoTotal.toFixed(1)+' L':'—'}</td>
+      <td style="padding:10px 16px;font-family:var(--font-mono);font-weight:500;color:var(--red)">${fmt(totalImporte)}</td>
+      <td colspan="2"></td>
+    </tr>` : '';
+
+  // Resumen por chofer
+  const resCard = document.getElementById('ypf-resumen-card');
+  const resLista = document.getElementById('ypf-resumen-lista');
+  const cargasConChofer = cargas.filter(c=>c.chofer);
+  if(resCard) resCard.style.display = cargasConChofer.length ? '' : 'none';
+  if(resLista && cargasConChofer.length){
+    const porChofer = {};
+    cargasConChofer.forEach(c=>{
+      if(!porChofer[c.chofer]) porChofer[c.chofer]={litros:0,km:0,importe:0,cargas:0};
+      porChofer[c.chofer].litros+=c.litros;
+      porChofer[c.chofer].km+=(c.km||0);
+      porChofer[c.chofer].importe+=c.importe;
+      porChofer[c.chofer].cargas++;
+    });
+    resLista.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr>
+        <th style="text-align:left;padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border)">Chofer</th>
+        <th style="padding:8px 12px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);text-align:center">Cargas</th>
+        <th style="padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);text-align:right">Litros</th>
+        <th style="padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);text-align:right">Km</th>
+        <th style="padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);text-align:right">C/100km</th>
+        <th style="padding:8px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);border-bottom:1px solid var(--border);text-align:right">Gasto</th>
+      </tr></thead>
+      <tbody>${Object.entries(porChofer).sort((a,b)=>b[1].importe-a[1].importe).map(([nombre,v])=>{
+        const c100=v.km>0?(v.litros/v.km*100).toFixed(1)+'L':'—';
+        return`<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 16px;font-weight:500">${nombre}</td>
+          <td style="padding:10px 12px;text-align:center;color:var(--text3)">${v.cargas}</td>
+          <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono)">${Math.round(v.litros).toLocaleString('es-AR')} L</td>
+          <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);color:var(--text3)">${Math.round(v.km).toLocaleString('es-AR')}</td>
+          <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);color:var(--blue);font-weight:500">${c100}</td>
+          <td style="padding:10px 16px;text-align:right;font-family:var(--font-mono);color:var(--red);font-weight:500">${fmt(v.importe)}</td>
+        </tr>`;}).join('')}
+      </tbody></table>`;
+  }
+}
+
+function ypfPreview(){
+  const litros = parseFloat(document.getElementById('ypf-litros').value)||0;
+  const km     = parseFloat(document.getElementById('ypf-km')?.value||'0')||0;
+  const precio = ypfGetPrecio();
+  document.getElementById('ypf-importe-preview').textContent = litros>0 ? fmt(litros*precio) : '—';
+}
+
+function ypfGuardarPrecio(){
+  if(!data.ypf) data.ypf = {precioPorLitro:2142, cargas:[], choferes:[]};
+  data.ypf.precioPorLitro = ypfGetPrecio();
+  save();
+  const el = document.getElementById('ypf-precio-saved');
+  if(el){ el.textContent = '✓ Guardado'; setTimeout(()=>el.textContent='',2000); }
+  ypfRender();
+}
+
+function ypfAgregar(){
+  if(!data.ypf) data.ypf = {precioPorLitro:2142, cargas:[], choferes:[]};
+  const remito = document.getElementById('ypf-remito').value.trim();
+  const litros = parseFloat(document.getElementById('ypf-litros').value);
+  const km     = parseFloat(document.getElementById('ypf-km')?.value||'0')||0;
+  const fecha  = document.getElementById('ypf-fecha').value;
+  const chofer = document.getElementById('ypf-chofer')?.value||'';
+  const notas  = document.getElementById('ypf-notas').value.trim();
+  if(!litros||!fecha) return alert('Completá litros y fecha');
+  const precio = ypfGetPrecio();
+  data.ypf.cargas.push({id:Date.now(), remito, litros, km, fecha, chofer, precioPorLitro:precio, importe:Math.round(litros*precio), notas});
+  save(); ypfRender(); toggleForm('form-ypf');
+  ['ypf-remito','ypf-litros','ypf-notas','ypf-km'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const ip=document.getElementById('ypf-importe-preview'); if(ip)ip.textContent='—';
+  document.getElementById('ypf-fecha').value=TODAY;
+  if(document.getElementById('ypf-chofer')) document.getElementById('ypf-chofer').value='';
+}
+
+function ypfEliminar(id){
+  if(!confirm('Eliminar esta carga?')) return;
+  data.ypf.cargas = data.ypf.cargas.filter(c=>c.id!==id);
+  save(); ypfRender();
+}
+
+// ── COSTOS FIJOS ─────────────────────────────────────────────
+const CF_FREQ_LABEL = {semanal:'Semanal',mensual:'Mensual',bimestral:'Bimestral',trimestral:'Trimestral',anual:'Anual'};
+
+function cfMensual(c) {
+  const m = c.monto;
+  if(c.freq==='semanal')    return m * 4.33;
+  if(c.freq==='mensual')    return m;
+  if(c.freq==='bimestral')  return m / 2;
+  if(c.freq==='trimestral') return m / 3;
+  if(c.freq==='anual')      return m / 12;
+  return m;
+}
+
+function renderCF() {
+  if(!data.costosFijos) data.costosFijos = [];
+  const cf = data.costosFijos;
+  const totalMensual = cf.reduce((a,c)=>a+cfMensual(c),0);
+  const totalAnual   = totalMensual * 12;
+  const porCat = {};
+  cf.forEach(c=>{ porCat[c.cat]=(porCat[c.cat]||0)+cfMensual(c); });
+  const topCat = Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+
+  document.getElementById('cf-metrics').innerHTML = `
+    <div class="metric-card red"><div class="metric-label">Total fijo mensual</div><div class="metric-value red">${fmt(Math.round(totalMensual))}</div><div class="metric-sub">${cf.length} conceptos</div></div>
+    <div class="metric-card amber"><div class="metric-label">Total fijo anual</div><div class="metric-value amber">${fmt(Math.round(totalAnual))}</div></div>
+    <div class="metric-card blue"><div class="metric-label">Mayor rubro</div><div class="metric-value blue" style="font-size:16px">${topCat[0]?topCat[0][0]:'--'}</div><div class="metric-sub">${topCat[0]?fmt(Math.round(topCat[0][1]))+'/mes':''}</div></div>
+  `;
+
+  document.getElementById('cf-tbody').innerHTML = cf.length
+    ? [...cf].sort((a,b)=>cfMensual(b)-cfMensual(a)).map(c=>`
+      <tr>
+        <td style="font-weight:500">${c.nombre}${c.notas?`<br><span style="font-size:11px;color:var(--text3)">${c.notas}</span>`:''}</td>
+        <td><span class="badge badge-gray">${c.cat}</span></td>
+        <td style="font-size:12px">${CF_FREQ_LABEL[c.freq]||c.freq}${c.freq==='semanal'&&c.dia?' - '+(DIAS_SEM[c.dia]||''):''}</td>
+        <td class="mono">${fmt(c.monto)}</td>
+        <td class="mono" style="font-weight:500;color:var(--red)">${fmt(Math.round(cfMensual(c)))}</td>
+        <td><button class="btn btn-sm btn-icon btn-danger" onclick="cfEliminar(${c.id})">✕</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="empty">Sin costos fijos cargados</td></tr>';
+
+  document.getElementById('cf-tfoot').innerHTML = cf.length ? `
+    <tr style="background:var(--bg3)">
+      <td colspan="3" style="padding:10px 16px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Total mensual</td>
+      <td></td>
+      <td class="mono" style="padding:10px 16px;font-weight:500;color:var(--red)">${fmt(Math.round(totalMensual))}</td>
+      <td></td>
+    </tr>` : '';
+
+  const cfEl = document.getElementById('dash-cf-total');
+  if(cfEl) cfEl.textContent = fmt(Math.round(totalMensual));
+}
+
+function cfAgregar() {
+  if(!data.costosFijos) data.costosFijos = [];
+  const n = document.getElementById('cf-nombre').value.trim();
+  const m = parseFloat(document.getElementById('cf-monto').value);
+  if(!n||!m) return alert('Completá concepto y monto');
+  data.costosFijos.push({
+    id:Date.now(), nombre:n, monto:m,
+    cat:  document.getElementById('cf-cat').value,
+    freq: document.getElementById('cf-freq').value,
+    dia:  document.getElementById('cf-dia').value,
+    notas:document.getElementById('cf-notas').value.trim()
+  });
+  save(); renderCF(); toggleForm('form-cf');
+  ['cf-nombre','cf-monto','cf-notas'].forEach(id=>document.getElementById(id).value='');
+}
+
+function cfEliminar(id) {
+  if(!confirm('Eliminar este costo fijo?')) return;
+  data.costosFijos = data.costosFijos.filter(c=>c.id!==id);
+  save(); renderCF();
+}
+
+// ── COSTOS VARIOS ────────────────────────────────────────────
+const REC_LABEL = {semanal:'Semanal',mensual:'Mensual',bimestral:'Bimestral',trimestral:'Trimestral',anual:'Anual',unico:'Único'};
+const DIAS_SEM = {1:'Lunes',2:'Martes',3:'Miércoles',4:'Jueves',5:'Viernes'};
+
+function cvMensual(c) {
+  const m = c.monto;
+  if(c.rec==='semanal')     return m * 4.33;
+  if(c.rec==='mensual')     return m;
+  if(c.rec==='bimestral')   return m / 2;
+  if(c.rec==='trimestral')  return m / 3;
+  if(c.rec==='anual')       return m / 12;
+  return m; // único
+}
+
+function renderCostos() {
+  if(!data.costos) data.costos = [];
+  const costos = data.costos;
+  const totalMensual = costos.reduce((a,c)=>a+cvMensual(c),0);
+  const totalAnual   = costos.reduce((a,c)=>a+(c.rec==='unico'?c.monto:cvMensual(c)*12),0);
+
+  document.getElementById('costos-metrics').innerHTML = `
+    <div class="metric-card red"><div class="metric-label">Costo mensual estimado</div><div class="metric-value red">${fmt(totalMensual)}</div><div class="metric-sub">${costos.length} concepto${costos.length!==1?'s':''}</div></div>
+    <div class="metric-card amber"><div class="metric-label">Costo anual estimado</div><div class="metric-value amber">${fmt(totalAnual)}</div></div>
+    <div class="metric-card blue"><div class="metric-label">Costos semanales</div><div class="metric-value blue">${fmt(costos.filter(c=>c.rec==='semanal').reduce((a,c)=>a+c.monto,0))}</div><div class="metric-sub">x sem.</div></div>
+  `;
+
+  document.getElementById('cv-tbody').innerHTML = costos.length ? costos.map(c=>`
+    <tr>
+      <td style="font-weight:500">${c.nombre}${c.notas?`<br><span style="font-size:11px;color:var(--text3)">${c.notas}</span>`:''}</td>
+      <td><span class="badge badge-gray">${c.cat}</span></td>
+      <td style="font-size:12px">${REC_LABEL[c.rec]||c.rec}${c.rec==='semanal'&&c.dia?` · ${DIAS_SEM[c.dia]||''}`:''}</td>
+      <td class="mono">${fmt(c.monto)}</td>
+      <td class="mono" style="color:var(--red)">${fmt(Math.round(cvMensual(c)))}</td>
+      <td><button class="btn btn-sm btn-icon btn-danger" onclick="cvEliminar(${c.id})">✕</button></td>
+    </tr>`).join('') : '<tr><td colspan="6" class="empty"><div class="empty-icon">◧</div>Sin costos cargados</td></tr>';
+
+  document.getElementById('cv-tfoot').innerHTML = costos.length ? `
+    <tr style="background:var(--bg3)">
+      <td colspan="3" style="padding:10px 16px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)">Total mensual estimado</td>
+      <td></td>
+      <td class="mono" style="padding:10px 16px;font-weight:500;color:var(--red)">${fmt(Math.round(totalMensual))}</td>
+      <td></td>
+    </tr>` : '';
+}
+
+function cvAgregar() {
+  if(!data.costos) data.costos = [];
+  const n = document.getElementById('cv-nombre').value.trim();
+  const m = parseFloat(document.getElementById('cv-monto').value);
+  if(!n||!m) return alert('Completá concepto y monto');
+  data.costos.push({
+    id:Date.now(),
+    nombre:n, monto:m,
+    cat:document.getElementById('cv-cat').value,
+    rec:document.getElementById('cv-rec').value,
+    dia:document.getElementById('cv-dia').value,
+    notas:document.getElementById('cv-notas').value.trim()
+  });
+  save(); renderCostos(); toggleForm('form-costo');
+  ['cv-nombre','cv-monto','cv-notas'].forEach(id=>document.getElementById(id).value='');
+}
+
+function cvEliminar(id) {
+  if(!confirm('Eliminar este costo?')) return;
+  data.costos = data.costos.filter(c=>c.id!==id);
+  save(); renderCostos();
+}
+
+// Show costos semanales (lunes) in flujo de fondos calendar
+function cvGetCostosDelDia(fecha) {
+  if(!data.costos) return [];
+  const dt = new Date(fecha+'T12:00:00');
+  const dow = dt.getDay(); // 1=lun...5=vie, 0=dom, 6=sab
+  return data.costos.filter(c => {
+    if(c.rec==='semanal') return String(dow) === String(c.dia);
+    return false;
+  });
+}
+
 // ── CONFIG ──────────────────────────────────────────────────
 function saveSaldo(){const v=parseFloat(document.getElementById('conf-saldo').value);if(isNaN(v))return alert('Número inválido');data.disponible=v;save();alert('Saldo actualizado a '+fmt(v));}
 function exportJSON(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-'+TODAY+'.json';a.click();}
-function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem('flujo_v3');location.reload();}
+function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem('flujo_v5');location.reload();}
 
 // INIT
 updateTopbar();

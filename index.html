@@ -26,8 +26,17 @@
       <div class="nav-item" onclick="navigate('semana',this)"><span class="nav-icon">▦</span>Esta semana</div>
       <div class="nav-item" onclick="navigate('cobros',this)"><span class="nav-icon">↓</span>Cobros</div>
       <div class="nav-item" onclick="navigate('pagos',this)" id="nav-pagos"><span class="nav-icon">↑</span>Pagos</div>
-      <div class="nav-item" onclick="navigate('flujo',this)"><span class="nav-icon">〜</span>Flujo</div>
       <div class="nav-item" onclick="navigate('simulador',this)"><span class="nav-icon">◉</span>Simulador</div>
+      <div class="nav-item" onclick="navigate('flujo-fondos',this)"><span class="nav-icon">▦</span>Flujo de fondos</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Combustible</div>
+      <div class="nav-item" onclick="navigate('ypf',this)"><span class="nav-icon">⛽</span>YPF</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Gastos</div>
+      <div class="nav-item" onclick="navigate('costos-fijos',this)"><span class="nav-icon">■</span>Costos fijos</div>
+      <div class="nav-item" onclick="navigate('costos',this)"><span class="nav-icon">◧</span>Costos varios</div>
     </div>
     <div class="nav-section">
       <div class="nav-label">Configurar</div>
@@ -186,6 +195,17 @@
         </table></div>
       </div>
 
+      <!-- TOTALES POR CLIENTE -->
+      <div class="card" id="cobros-clientes-card">
+        <div class="card-header" onclick="cobrosToggleClientes()" style="cursor:pointer;user-select:none">
+          <span class="card-title">Total por cliente</span>
+          <span id="cobros-clientes-toggle" style="font-size:12px;color:var(--text3)">▼ ver</span>
+        </div>
+        <div id="cobros-clientes-body" style="display:none">
+          <div id="cobros-clientes-lista"></div>
+        </div>
+      </div>
+
       <!-- YA COBRADO -->
       <div class="card" id="cobros-historial-card">
         <div class="card-header" onclick="cobrosToggleHistorial()" style="cursor:pointer;user-select:none">
@@ -193,9 +213,35 @@
           <span id="cobros-historial-toggle" style="font-size:12px;color:var(--text3)">▼ ver</span>
         </div>
         <div id="cobros-historial-body" style="display:none">
+          <!-- DEPOSITADOS -->
+          <div id="hist-depositados-wrap">
+            <div style="padding:10px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg3)">Depositados</div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Cliente</th><th>Fecha cobro</th><th>Acredita</th><th>Tipo</th><th>Monto bruto</th><th>Neto acreditado</th><th></th></tr></thead>
+              <tbody id="cobros-hist-depositados"></tbody>
+            </table></div>
+          </div>
+          <!-- ENDOSADOS -->
+          <div id="hist-endosados-wrap">
+            <div style="padding:10px 16px;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);border-top:1px solid var(--border);background:var(--bg3)">Endosados</div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>Cliente</th><th>Fecha cobro</th><th>Monto</th><th>Endosado a</th><th></th></tr></thead>
+              <tbody id="cobros-hist-endosados"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENDOSOS -->
+      <div class="card" id="cobros-endosos-card" style="display:none">
+        <div class="card-header" onclick="cobrosToggleEndosos()" style="cursor:pointer;user-select:none">
+          <span class="card-title">Cheques endosados</span>
+          <span id="cobros-endosos-toggle" style="font-size:12px;color:var(--text3)">▼ ver</span>
+        </div>
+        <div id="cobros-endosos-body" style="display:none">
           <div class="table-wrap"><table>
-            <thead><tr><th>Cliente</th><th>Fecha cobro</th><th>Acredita</th><th>Tipo</th><th>Monto bruto</th><th>Neto acreditado</th><th></th></tr></thead>
-            <tbody id="cobros-historial-tbody"></tbody>
+            <thead><tr><th>Cheque</th><th>Fecha</th><th>Monto</th><th>Endosado a</th><th>Fecha endoso</th></tr></thead>
+            <tbody id="cobros-endosos-tbody"></tbody>
           </table></div>
         </div>
       </div>
@@ -240,18 +286,7 @@
       </div>
     </div>
 
-    <!-- FLUJO -->
-    <div class="page" id="page-flujo">
-      <div class="page-header"><div class="page-title">Flujo de caja</div><div class="page-sub">Proyección completa</div></div>
-      <div class="metrics" id="flujo-metrics"></div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Línea de tiempo</span></div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Movimiento</th><th style="text-align:right">Saldo acum.</th></tr></thead>
-          <tbody id="flujo-tbody"></tbody>
-        </table></div>
-      </div>
-    </div>
+
 
 
     <!-- SIMULADOR -->
@@ -342,6 +377,250 @@
             <div class="sim-timeline" id="sim-timeline"></div>
           </div>
         </div>
+      </div>
+    </div>
+
+
+
+    <!-- FLUJO DE FONDOS -->
+    <div class="page" id="page-flujo-fondos">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="page-title">Flujo de fondos</div>
+          <div class="page-sub">Arrastrá los pagos al día que planificás pagar</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm" onclick="ffMes(-1)">← Mes anterior</button>
+          <span id="ff-mes-label" style="font-size:13px;font-weight:500;min-width:120px;text-align:center"></span>
+          <button class="btn btn-sm" onclick="ffMes(1)">Siguiente →</button>
+          <button class="btn btn-sm btn-accent" onclick="ffHoy()">Hoy</button>
+        </div>
+      </div>
+
+      <div class="metrics" id="ff-metrics"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start">
+        <!-- CALENDARIO -->
+        <div class="card" style="margin-bottom:0">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)">
+            <div style="padding:8px;text-align:center;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Lun</div>
+            <div style="padding:8px;text-align:center;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Mar</div>
+            <div style="padding:8px;text-align:center;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Mié</div>
+            <div style="padding:8px;text-align:center;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Jue</div>
+            <div style="padding:8px;text-align:center;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Vie</div>
+            <div style="padding:8px;text-align:center;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Sáb</div>
+            <div style="padding:8px;text-align:center;font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">Dom</div>
+          </div>
+          <div id="ff-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr)"></div>
+        </div>
+
+        <!-- PANEL LATERAL: pagos sin asignar -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Sin fecha asignada</span></div>
+            <div id="ff-unscheduled" style="padding:8px;min-height:60px"></div>
+          </div>
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Cobros del mes</span></div>
+            <div id="ff-cobros-mes" style="padding:0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- YPF -->
+    <div class="page" id="page-ypf">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div><div class="page-title">YPF</div><div class="page-sub">Registro de cargas de combustible</div></div>
+        <button class="btn btn-accent" onclick="toggleForm('form-ypf')">+ Nueva carga</button>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header"><span class="card-title">Precio por litro</span></div>
+        <div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;color:var(--text2)">$</span>
+            <input class="form-input" id="ypf-precio" type="number" value="2142" style="width:130px;font-family:var(--font-mono);font-size:16px" oninput="ypfRender()">
+            <span style="font-size:12px;color:var(--text3)">por litro</span>
+          </div>
+          <button class="btn btn-sm btn-accent" onclick="ypfGuardarPrecio()">Guardar precio</button>
+          <span id="ypf-precio-saved" style="font-size:12px;color:var(--text3)"></span>
+        </div>
+      </div>
+
+      <div class="metrics" id="ypf-metrics"></div>
+
+      <!-- CHOFERES -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <span class="card-title">Choferes</span>
+          <button class="btn btn-sm" onclick="ypfToggleChoferes()">+ Agregar</button>
+        </div>
+        <div id="ypf-choferes-form" style="display:none;padding:14px;border-bottom:1px solid var(--border);background:var(--bg3)">
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <div class="form-group" style="flex:1"><label class="form-label">Nombre del chofer</label><input class="form-input" id="ypf-chofer-nombre" placeholder="Ej: Juan Pérez" onkeydown="if(event.key==='Enter')ypfAgregarChofer()"></div>
+            <button class="btn btn-accent" onclick="ypfAgregarChofer()">Guardar</button>
+            <button class="btn" onclick="ypfToggleChoferes()">Cancelar</button>
+          </div>
+        </div>
+        <div id="ypf-choferes-lista" style="padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;min-height:44px">
+          <span style="font-size:12px;color:var(--text3)">Sin choferes cargados</span>
+        </div>
+      </div>
+
+      <!-- RESUMEN POR CHOFER -->
+      <div class="card" id="ypf-resumen-card" style="margin-bottom:20px;display:none">
+        <div class="card-header"><span class="card-title">Rendimiento por chofer</span></div>
+        <div id="ypf-resumen-lista"></div>
+      </div>
+
+      <div class="card">
+        <div class="form-panel" id="form-ypf">
+          <div class="form-grid form-row3">
+            <div class="form-group"><label class="form-label">N° de remito</label><input class="form-input" id="ypf-remito" placeholder="Ej: 0001-00012345"></div>
+            <div class="form-group"><label class="form-label">Litros</label><input class="form-input" id="ypf-litros" type="number" placeholder="0" step="0.01" oninput="ypfPreview()"></div>
+            <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="ypf-fecha" type="date"></div>
+          </div>
+          <div class="form-grid form-row3">
+            <div class="form-group"><label class="form-label">Chofer</label>
+              <select class="form-input" id="ypf-chofer"><option value="">— Sin asignar —</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Km recorridos</label><input class="form-input" id="ypf-km" type="number" placeholder="0" step="1" oninput="ypfPreview()"></div>
+            <div class="form-group"><label class="form-label">Notas (unidad)</label><input class="form-input" id="ypf-notas" placeholder="Ej: Camión 3"></div>
+          </div>
+          <div class="form-grid form-row2">
+            <div class="form-group"><label class="form-label">Importe calculado</label>
+              <div id="ypf-importe-preview" style="padding:9px 12px;background:var(--bg4);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:15px;font-weight:500;color:var(--accent)">—</div>
+            </div>
+            <div style="display:flex;align-items:flex-end">
+              <div style="font-size:11px;color:var(--text3);padding-bottom:4px">El consumo c/100km se calcula automáticamente al guardar</div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" onclick="toggleForm('form-ypf')">Cancelar</button>
+            <button class="btn btn-accent" onclick="ypfAgregar()">Guardar carga</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>N° Remito</th><th>Fecha</th><th>Chofer</th><th>Litros</th><th>Km</th><th>C/100km</th><th>Importe</th><th>Notas</th><th></th></tr></thead>
+          <tbody id="ypf-tbody"></tbody>
+          <tfoot id="ypf-tfoot"></tfoot>
+        </table></div>
+      </div>
+    </div>
+
+
+
+    <!-- COSTOS FIJOS -->
+    <div class="page" id="page-costos-fijos">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="page-title">Costos fijos</div>
+          <div class="page-sub">Estructura de costos que se pagan siempre, todos los meses</div>
+        </div>
+        <button class="btn btn-accent" onclick="toggleForm('form-cf')">+ Agregar</button>
+      </div>
+
+      <div class="metrics" id="cf-metrics"></div>
+
+      <div class="card">
+        <div class="form-panel" id="form-cf">
+          <div class="form-grid form-row3">
+            <div class="form-group"><label class="form-label">Concepto</label><input class="form-input" id="cf-nombre" placeholder="Ej: Alquiler depósito"></div>
+            <div class="form-group"><label class="form-label">Monto $</label><input class="form-input" id="cf-monto" type="number" placeholder="0"></div>
+            <div class="form-group"><label class="form-label">Categoría</label>
+              <select class="form-input" id="cf-cat">
+                <option>Laboral</option><option>Alquiler</option><option>Seguro</option><option>Impuesto/AFIP</option>
+                <option>Préstamo/cuota</option><option>Servicio</option><option>Administrativo</option><option>Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid form-row3">
+            <div class="form-group"><label class="form-label">Frecuencia</label>
+              <select class="form-input" id="cf-freq">
+                <option value="semanal">Semanal</option>
+                <option value="mensual" selected>Mensual</option>
+                <option value="bimestral">Bimestral</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="anual">Anual</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Día (si semanal)</label>
+              <select class="form-input" id="cf-dia">
+                <option value="">—</option>
+                <option value="1">Lunes</option><option value="2">Martes</option>
+                <option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Notas</label><input class="form-input" id="cf-notas" placeholder="Opcional"></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" onclick="toggleForm('form-cf')">Cancelar</button>
+            <button class="btn btn-accent" onclick="cfAgregar()">Guardar</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Concepto</th><th>Categoría</th><th>Frecuencia</th><th>Monto</th><th>Equivalente mensual</th><th></th></tr></thead>
+          <tbody id="cf-tbody"></tbody>
+          <tfoot id="cf-tfoot"></tfoot>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- COSTOS VARIOS -->
+    <div class="page" id="page-costos">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="page-title">Costos varios</div>
+          <div class="page-sub">Gastos recurrentes y costos estructurales (no requieren pago inmediato)</div>
+        </div>
+        <button class="btn btn-accent" onclick="toggleForm('form-costo')">+ Nuevo costo</button>
+      </div>
+
+      <div class="metrics" id="costos-metrics"></div>
+
+      <div class="card">
+        <div class="form-panel" id="form-costo">
+          <div class="form-grid form-row3">
+            <div class="form-group"><label class="form-label">Concepto</label><input class="form-input" id="cv-nombre" placeholder="Ej: Seguro flotilla"></div>
+            <div class="form-group"><label class="form-label">Monto $</label><input class="form-input" id="cv-monto" type="number" placeholder="0"></div>
+            <div class="form-group"><label class="form-label">Categoría</label>
+              <select class="form-input" id="cv-cat">
+                <option>Laboral</option><option>Seguro</option><option>Mantenimiento</option><option>Administrativo</option><option>Servicio</option><option>Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid form-row3">
+            <div class="form-group"><label class="form-label">Recurrencia</label>
+              <select class="form-input" id="cv-rec">
+                <option value="semanal">Semanal</option>
+                <option value="mensual" selected>Mensual</option>
+                <option value="bimestral">Bimestral</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="anual">Anual</option>
+                <option value="unico">Único / puntual</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Día de la semana (si semanal)</label>
+              <select class="form-input" id="cv-dia">
+                <option value="">—</option>
+                <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option>
+                <option value="4">Jueves</option><option value="5">Viernes</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Notas</label><input class="form-input" id="cv-notas" placeholder="Opcional"></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" onclick="toggleForm('form-costo')">Cancelar</button>
+            <button class="btn btn-accent" onclick="cvAgregar()">Guardar costo</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Concepto</th><th>Categoría</th><th>Recurrencia</th><th>Monto</th><th>Mensual estimado</th><th></th></tr></thead>
+          <tbody id="cv-tbody"></tbody>
+          <tfoot id="cv-tfoot"></tfoot>
+        </table></div>
       </div>
     </div>
 
