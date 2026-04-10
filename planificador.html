@@ -11,51 +11,30 @@
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
 <div class="app">
-  <!-- TOPBAR -->
   <header class="topbar">
-    <div class="logo">
-      <div class="logo-dot"></div>
-      flujo
-    </div>
+    <div class="logo"><div class="logo-dot"></div>flujo</div>
     <div class="topbar-right">
-      <div class="saldo-pill">
-        <span class="saldo-label">Disponible</span>
-        <span id="top-saldo">$0</span>
-      </div>
+      <div class="saldo-pill"><span class="saldo-label">Disponible</span><span id="top-saldo">$0</span></div>
       <button class="btn btn-sm" onclick="exportJSON()">↓ Exportar</button>
     </div>
   </header>
 
-  <!-- SIDEBAR -->
   <nav class="sidebar">
     <div class="nav-section">
-      <div class="nav-item active" onclick="navigate('dashboard', this)">
-        <span class="nav-icon">◈</span> Dashboard
-      </div>
-      <div class="nav-item" onclick="navigate('cobros', this)">
-        <span class="nav-icon">↓</span> Cobros
-      </div>
-      <div class="nav-item" onclick="navigate('pagos', this)" id="nav-pagos">
-        <span class="nav-icon">↑</span> Pagos
-      </div>
-      <div class="nav-item" onclick="navigate('flujo', this)">
-        <span class="nav-icon">〜</span> Flujo
-      </div>
+      <div class="nav-item active" onclick="navigate('dashboard',this)"><span class="nav-icon">◈</span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('semana',this)"><span class="nav-icon">▦</span>Esta semana</div>
+      <div class="nav-item" onclick="navigate('cobros',this)"><span class="nav-icon">↓</span>Cobros</div>
+      <div class="nav-item" onclick="navigate('pagos',this)" id="nav-pagos"><span class="nav-icon">↑</span>Pagos</div>
+      <div class="nav-item" onclick="navigate('flujo',this)"><span class="nav-icon">〜</span>Flujo</div>
+      <div class="nav-item" onclick="navigate('simulador',this)"><span class="nav-icon">◉</span>Simulador</div>
     </div>
     <div class="nav-section">
-      <div class="nav-label">Herramientas</div>
-      <div class="nav-item" onclick="navigate('ia', this)">
-        <span class="nav-icon">◎</span> Asistente IA
-      </div>
-      <div class="nav-item" onclick="navigate('config', this)">
-        <span class="nav-icon">⊙</span> Configurar
-      </div>
+      <div class="nav-label">Configurar</div>
+      <div class="nav-item" onclick="navigate('config',this)"><span class="nav-icon">⊙</span>Ajustes</div>
     </div>
   </nav>
 
-  <!-- MAIN CONTENT -->
   <main class="main">
 
     <!-- DASHBOARD -->
@@ -66,6 +45,54 @@
       </div>
       <div class="metrics" id="dash-metrics"></div>
       <div class="alerts" id="dash-alerts"></div>
+
+      <div class="grid2">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div class="card">
+            <div class="card-header"><span class="card-title">¿Qué puedo pagar hoy?</span><span id="rec-saldo-disp" style="font-size:12px;font-family:var(--font-mono);color:var(--text3)"></span></div>
+            <div class="rec-list" id="rec-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Simular depósito de cheques</span>
+              <button class="btn btn-sm" onclick="cheqReset()">↺ Reiniciar</button>
+            </div>
+            <div id="cheq-cobros-list" style="padding:10px 10px 4px"></div>
+            <div style="border-top:1px solid var(--border);padding:12px 16px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Bruto total</span>
+                <span id="cheq-bruto" style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text)">$ 0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;color:var(--text3)">Imp. al cheque crédito (0,6%)</span>
+                <span id="cheq-imp" style="font-family:var(--font-mono);font-size:12px;color:var(--red)"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;color:var(--text3)">SIRCREB Mendoza (1,5%)</span>
+                <span id="cheq-sircreb" style="font-family:var(--font-mono);font-size:12px;color:var(--red)"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
+                <span style="font-size:12px;font-weight:500">Neto a acreditar</span>
+                <span id="cheq-neto" style="font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--accent)"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;color:var(--text3)">Saldo disponible post-depósito</span>
+                <span id="cheq-saldo-post" style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--blue)"></span>
+              </div>
+              <div id="cheq-confirm-msg" style="display:none;padding:8px 10px;background:var(--accent-dim);border-radius:var(--radius-sm);font-size:12px;color:var(--accent);border:1px solid rgba(26,107,58,.2)"></div>
+              <button id="cheq-depositar-btn" class="btn btn-accent" style="width:100%;display:none;margin-top:4px" onclick="cheqDepositar()">✓ Confirmar depósito</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Próximos vencimientos</span></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Concepto</th><th>Vence</th><th>Monto</th><th>Urgencia</th></tr></thead>
+            <tbody id="dash-upcoming"></tbody>
+          </table></div>
+        </div>
+      </div>
+
       <div class="grid2">
         <div class="card">
           <div class="card-header"><span class="card-title">Flujo acumulado</span></div>
@@ -74,43 +101,103 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><span class="card-title">Composición de pagos</span></div>
+          <div class="card-header"><span class="card-title">Pagos por categoría</span></div>
           <div class="card-body" style="padding:16px">
-            <div class="chart-wrap" style="height:200px"><canvas id="chart-cats" role="img" aria-label="Gráfico categorías de pagos"></canvas></div>
+            <div class="chart-wrap" style="height:200px"><canvas id="chart-cats" role="img" aria-label="Gráfico categorías"></canvas></div>
           </div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Próximos vencimientos</span></div>
-        <div class="table-wrap"><table>
-          <thead><tr><th>Concepto</th><th>Vence</th><th>Monto</th><th>Urgencia</th></tr></thead>
-          <tbody id="dash-upcoming"></tbody>
-        </table></div>
+    </div>
+
+    <!-- SEMANA -->
+    <div class="page" id="page-semana">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div><div class="page-title">Esta semana</div><div class="page-sub" id="semana-rango"></div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm" onclick="cambiarSemana(-1)">← Anterior</button>
+          <button class="btn btn-sm btn-accent" onclick="irHoy()">Hoy</button>
+          <button class="btn btn-sm" onclick="cambiarSemana(1)">Siguiente →</button>
+        </div>
+      </div>
+      <div class="semana-grid" id="semana-grid"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title" id="semana-label-cobros">Cobros de la semana</span><span id="semana-total-cobros" style="font-size:12px;font-family:var(--font-mono);color:var(--accent)"></span></div>
+          <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Acredita</th><th>Monto</th><th>Estado</th></tr></thead>
+          <tbody id="semana-cobros-list"></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title" id="semana-label-pagos">Pagos de la semana</span><span id="semana-total-pagos" style="font-size:12px;font-family:var(--font-mono);color:var(--red)"></span></div>
+          <div class="table-wrap"><table><thead><tr><th>Concepto</th><th>Vence</th><th>Monto</th><th>Prioridad</th></tr></thead>
+          <tbody id="semana-pagos-list"></tbody></table></div>
+        </div>
       </div>
     </div>
 
     <!-- COBROS -->
     <div class="page" id="page-cobros">
-      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div><div class="page-title">Cobros</div><div class="page-sub">Ingresos esperados</div></div>
         <button class="btn btn-accent" onclick="toggleForm('form-cobro')">+ Nuevo cobro</button>
       </div>
+
       <div class="card">
         <div class="form-panel" id="form-cobro">
           <div class="form-grid form-row2">
             <div class="form-group"><label class="form-label">Cliente / concepto</label><input class="form-input" id="c-nombre" placeholder="Ej: MAREF"></div>
             <div class="form-group"><label class="form-label">Monto $</label><input class="form-input" id="c-monto" type="number" placeholder="0"></div>
           </div>
-          <div class="form-grid form-row2">
+          <div class="form-grid form-row3">
             <div class="form-group"><label class="form-label">Fecha esperada</label><input class="form-input" id="c-fecha" type="date"></div>
+            <div class="form-group"><label class="form-label">Tipo de cobro</label>
+              <select class="form-input" id="c-tipo">
+                <option value="transferencia">Transferencia</option>
+                <option value="cheque">Cheque (+2 días hábiles)</option>
+                <option value="efectivo">Efectivo</option>
+              </select>
+            </div>
             <div class="form-group"><label class="form-label">Notas</label><input class="form-input" id="c-notas" placeholder="Opcional"></div>
           </div>
           <div class="form-actions"><button class="btn" onclick="toggleForm('form-cobro')">Cancelar</button><button class="btn btn-accent" onclick="addCobro()">Guardar cobro</button></div>
         </div>
+
+        <!-- FILTROS Y ORDEN -->
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+          <div class="cobros-filter-btns" id="cobros-filtro-btns">
+            <button class="cfbtn active" onclick="cobrosSetFiltro('todos',this)">Todos</button>
+            <button class="cfbtn" onclick="cobrosSetFiltro('transferencia',this)">Transferencias</button>
+            <button class="cfbtn" onclick="cobrosSetFiltro('cheque',this)">Cheques</button>
+            <button class="cfbtn" onclick="cobrosSetFiltro('efectivo',this)">Efectivo</button>
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--text3)">Ordenar:</span>
+            <select class="form-input" id="cobros-orden" style="width:auto;padding:5px 8px;font-size:12px" onchange="renderCobros()">
+              <option value="fecha">Fecha</option>
+              <option value="monto">Monto</option>
+              <option value="cliente">Cliente</option>
+            </select>
+          </div>
+        </div>
+
         <div class="table-wrap"><table>
-          <thead><tr><th>Cliente</th><th>Fecha</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Cliente</th><th>Fecha cobro</th><th>Acredita</th><th>Tipo</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
           <tbody id="cobros-tbody"></tbody>
+          <tfoot id="cobros-tfoot"></tfoot>
         </table></div>
+      </div>
+
+      <!-- YA COBRADO -->
+      <div class="card" id="cobros-historial-card">
+        <div class="card-header" onclick="cobrosToggleHistorial()" style="cursor:pointer;user-select:none">
+          <span class="card-title">Ya cobrado</span>
+          <span id="cobros-historial-toggle" style="font-size:12px;color:var(--text3)">▼ ver</span>
+        </div>
+        <div id="cobros-historial-body" style="display:none">
+          <div class="table-wrap"><table>
+            <thead><tr><th>Cliente</th><th>Fecha cobro</th><th>Acredita</th><th>Tipo</th><th>Monto bruto</th><th>Neto acreditado</th><th></th></tr></thead>
+            <tbody id="cobros-historial-tbody"></tbody>
+          </table></div>
+        </div>
       </div>
     </div>
 
@@ -126,7 +213,7 @@
             <div class="form-group"><label class="form-label">Concepto</label><input class="form-input" id="p-nombre" placeholder="Ej: AFIP"></div>
             <div class="form-group"><label class="form-label">Monto $</label><input class="form-input" id="p-monto" type="number" placeholder="0"></div>
           </div>
-          <div class="form-grid form-row3">
+          <div class="form-grid form-row4">
             <div class="form-group"><label class="form-label">Fecha límite</label><input class="form-input" id="p-fecha" type="date"></div>
             <div class="form-group"><label class="form-label">Categoría</label>
               <select class="form-input" id="p-cat">
@@ -134,13 +221,21 @@
                 <option>Préstamo/cuota</option><option>Proveedor</option><option>Sueldo</option><option>Otro</option>
               </select>
             </div>
+            <div class="form-group"><label class="form-label">Prioridad</label>
+              <select class="form-input" id="p-prio">
+                <option value="urgente">🔴 Urgente</option>
+                <option value="normal" selected>🟡 Normal</option>
+                <option value="puede-esperar">⚪ Puede esperar</option>
+              </select>
+            </div>
             <div class="form-group"><label class="form-label">Notas</label><input class="form-input" id="p-notas" placeholder="Opcional"></div>
           </div>
           <div class="form-actions"><button class="btn" onclick="toggleForm('form-pago')">Cancelar</button><button class="btn btn-accent" onclick="addPago()">Guardar pago</button></div>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>Concepto</th><th>Categoría</th><th>Vence</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Concepto</th><th>Categoría</th><th>Prioridad</th><th>Vence</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
           <tbody id="pagos-tbody"></tbody>
+          <tfoot id="pagos-tfoot"></tfoot>
         </table></div>
       </div>
     </div>
@@ -158,24 +253,93 @@
       </div>
     </div>
 
-    <!-- IA -->
-    <div class="page" id="page-ia">
-      <div class="page-header"><div class="page-title">Asistente IA</div><div class="page-sub">Análisis inteligente de tu situación financiera</div></div>
-      <div class="card">
-        <div class="ai-wrap">
-          <div class="ai-messages" id="ai-messages"></div>
-          <div class="ai-footer">
-            <div class="ai-input-row">
-              <input class="ai-input" id="ai-input" placeholder="Preguntame lo que quieras sobre tus finanzas..." onkeydown="if(event.key==='Enter')sendAI()">
-              <button class="btn btn-accent" onclick="sendAI()">Enviar</button>
+
+    <!-- SIMULADOR -->
+    <div class="page" id="page-simulador">
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div><div class="page-title">Simulador</div><div class="page-sub">Jugá con depósitos y pagos antes de comprometerte</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="simReset()">↺ Reiniciar</button>
+          <button class="btn btn-sm btn-accent" onclick="simDesdeReales()">Cargar datos reales</button>
+        </div>
+      </div>
+
+      <div class="sim-metrics" id="sim-metrics"></div>
+
+      <div class="sim-layout">
+        <!-- PANEL IZQUIERDO: agregar operaciones -->
+        <div class="sim-panel">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Agregar operación</span></div>
+            <div class="card-body" style="padding:14px">
+              <div class="form-grid form-row2" style="margin-bottom:10px">
+                <div class="form-group"><label class="form-label">Tipo</label>
+                  <select class="form-input" id="sim-tipo" onchange="simTipoChange()">
+                    <option value="deposito">↓ Depósito / cobro</option>
+                    <option value="pago">↑ Pago / egreso</option>
+                  </select>
+                </div>
+                <div class="form-group"><label class="form-label">Monto $</label>
+                  <input class="form-input" id="sim-monto" type="number" placeholder="0">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:10px"><label class="form-label">Concepto</label>
+                <input class="form-input" id="sim-concepto" placeholder="Ej: Cobro San Máximo">
+              </div>
+              <div class="form-grid form-row2" style="margin-bottom:10px">
+                <div class="form-group"><label class="form-label">Fecha</label>
+                  <input class="form-input" id="sim-fecha" type="date">
+                </div>
+                <div class="form-group" id="sim-instrumento-wrap"><label class="form-label">Instrumento</label>
+                  <select class="form-input" id="sim-instrumento" onchange="simInstrumentoChange()">
+                    <option value="transferencia">Transferencia (mismo día)</option>
+                    <option value="cheque-propio">Cheque propio (mismo día)</option>
+                    <option value="cheque-tercero">Cheque 3° (+2 días hábiles)</option>
+                    <option value="efectivo">Efectivo (mismo día)</option>
+                  </select>
+                </div>
+              </div>
+              <div id="sim-acredita-info" style="display:none;margin-bottom:10px;padding:8px 10px;background:var(--amber-dim);border-radius:var(--radius-sm);font-size:12px;color:var(--amber);border:1px solid rgba(183,96,10,0.2)">
+                Acredita el: <strong id="sim-acredita-fecha"></strong>
+              </div>
+              <button class="btn btn-accent" style="width:100%" onclick="simAgregar()">+ Agregar a simulación</button>
             </div>
-            <div class="ai-quickbtns">
-              <button class="ai-qbtn" onclick="askQuick('¿Qué pago primero con lo que tengo disponible?')">¿Qué pago primero?</button>
-              <button class="ai-qbtn" onclick="askQuick('¿En algún momento quedo con saldo negativo? ¿Cuándo?')">¿Quedo en rojo?</button>
-              <button class="ai-qbtn" onclick="askQuick('Resumime el panorama general de mi flujo de caja')">Resumen general</button>
-              <button class="ai-qbtn" onclick="askQuick('¿Qué cobro es más crítico para cubrir mis compromisos?')">¿Cobro más crítico?</button>
-              <button class="ai-qbtn" onclick="askQuick('Dame una estrategia concreta para los próximos 7 días')">Plan 7 días</button>
+          </div>
+
+          <!-- Cobros disponibles para depositar -->
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Cobros para simular</span><span style="font-size:10px;color:var(--text3)">click para agregar</span></div>
+            <div id="sim-cobros-disponibles" style="padding:10px 10px 4px"></div>
+          </div>
+
+          <!-- Pagos disponibles para simular -->
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header"><span class="card-title">Pagos para simular</span><span style="font-size:10px;color:var(--text3)">click para agregar</span></div>
+            <div id="sim-pagos-disponibles" style="padding:10px 10px 4px"></div>
+          </div>
+
+          <!-- Operaciones pendientes de acreditación -->
+          <div class="card" style="margin-bottom:0" id="sim-pendientes-card">
+            <div class="card-header"><span class="card-title">Pendientes de acreditación</span></div>
+            <div id="sim-pendientes-list"></div>
+          </div>
+        </div>
+
+        <!-- PANEL DERECHO: timeline simulado -->
+        <div>
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header">
+              <span class="card-title">Flujo simulado</span>
+              <span id="sim-saldo-final-label" style="font-size:12px;font-family:var(--font-mono);color:var(--text3)"></span>
             </div>
+            <div style="display:flex;background:var(--bg3);border-bottom:1px solid var(--border)">
+              <div style="width:80px;padding:8px 12px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">Fecha</div>
+              <div style="flex:1;padding:8px 8px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">Concepto</div>
+              <div style="width:80px;padding:8px 6px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text3)">Tipo</div>
+              <div style="width:110px;padding:8px 8px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);text-align:right">Movimiento</div>
+              <div style="width:120px;padding:8px 14px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);text-align:right">Saldo</div>
+            </div>
+            <div class="sim-timeline" id="sim-timeline"></div>
           </div>
         </div>
       </div>
@@ -183,11 +347,11 @@
 
     <!-- CONFIG -->
     <div class="page" id="page-config">
-      <div class="page-header"><div class="page-title">Configuración</div><div class="page-sub">Saldo y datos</div></div>
+      <div class="page-header"><div class="page-title">Ajustes</div><div class="page-sub">Saldo y datos</div></div>
       <div class="card">
         <div class="card-header"><span class="card-title">Saldo disponible actual</span></div>
         <div class="card-body">
-          <p style="color:var(--text3);font-size:13px;margin-bottom:12px">Ajustá el saldo disponible. Esto afecta todas las proyecciones.</p>
+          <p style="color:var(--text3);font-size:13px;margin-bottom:12px">Ajustá el saldo disponible. Afecta todas las proyecciones.</p>
           <div class="disp-row">
             <input class="disp-input" id="conf-saldo" type="number" placeholder="0">
             <button class="btn btn-accent" onclick="saveSaldo()">Actualizar</button>
@@ -205,6 +369,23 @@
 
   </main>
 </div>
+
+<!-- MODAL ENDOSO -->
+<div id="endoso-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:500;align-items:center;justify-content:center">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:24px;width:100%;max-width:380px;margin:0 16px;box-shadow:0 8px 32px rgba(0,0,0,0.12)">
+    <div style="font-family:var(--font-display);font-size:18px;margin-bottom:6px;color:var(--text)">Endosar cheque</div>
+    <div id="endoso-desc" style="font-size:12px;color:var(--text3);margin-bottom:16px"></div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">A quién endosás</label>
+      <input class="form-input" id="endoso-input" placeholder="Nombre o empresa..." onkeydown="if(event.key==='Enter')endosoConfirmar()">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="endosoCancelar()">Cancelar</button>
+      <button class="btn btn-accent" onclick="endosoConfirmar()">✓ Confirmar endoso</button>
+    </div>
+  </div>
+</div>
+
 
 <script src="js/app.js"></script>
 </body>

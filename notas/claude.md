@@ -11,7 +11,7 @@ FinanzasApp/
 ├── css/
 │   └── styles.css      ← Todos los estilos (variables, layout, componentes)
 ├── js/
-│   └── app.js          ← Toda la lógica: datos, rendering, IA, gráficos
+│   └── app.js          ← Toda la lógica: datos, rendering, gráficos, simulador
 └── notas/
     └── claude.md       ← Este archivo
 ```
@@ -24,43 +24,46 @@ No necesita servidor local. Usa `localStorage` para persistir datos.
 - HTML/CSS/JS vanilla, sin frameworks
 - Chart.js 4.4.1 (CDN) para gráficos
 - Google Fonts: DM Serif Display, DM Sans, DM Mono
-- API de Anthropic (claude-sonnet-4-20250514) para el Asistente IA
+- localStorage key: `flujo_v2`
 
-## Modelo de datos (`localStorage` key: `flujo_v1`)
+## Modelo de datos (`localStorage` key: `flujo_v2`)
 ```js
 {
-  disponible: Number,       // saldo en banco + efectivo hoy
+  disponible: Number,
   cobros: [{
-    id, nombre, monto, fecha, cobrado, notas
+    id, nombre, monto, fecha,
+    tipo: 'transferencia' | 'cheque' | 'efectivo',
+    cobrado: Boolean, notas: String
   }],
   pagos: [{
-    id, nombre, monto, fecha, pagado, cat, notas
-    // cat: 'Impuesto/AFIP' | 'Alquiler' | 'Tarjeta' | 'Préstamo/cuota' | 'Proveedor' | 'Sueldo' | 'Otro'
+    id, nombre, monto, fecha, pagado,
+    cat: 'Impuesto/AFIP'|'Alquiler'|'Tarjeta'|'Préstamo/cuota'|'Proveedor'|'Sueldo'|'Otro',
+    prio: 'urgente' | 'normal' | 'puede-esperar',
+    notas: String
   }]
 }
 ```
 
 ## Secciones de la app
-- **Dashboard**: métricas clave, alertas, gráfico de flujo acumulado, gráfico de composición de pagos, próximos vencimientos
-- **Cobros**: tabla de ingresos esperados, formulario para agregar, marcar como cobrado
-- **Pagos**: tabla de obligaciones, formulario para agregar, marcar como pagado
+- **Dashboard**: métricas, alertas inteligentes, "¿qué puedo pagar hoy?" (arrastrable), simulador de depósito de cheques con retenciones, gráficos, próximos vencimientos
+- **Esta semana**: calendario 7 días navegable con cobros/pagos por día y saldo proyectado
+- **Cobros**: tabla con tipo (cheque/transfer/efectivo), fecha acreditación (+2 días hábiles para cheques), totales
+- **Pagos**: tabla con prioridad (urgente/normal/puede esperar), selector inline, totales
 - **Flujo**: línea de tiempo completa con saldo acumulado
-- **Asistente IA**: chat con Claude usando los datos financieros actuales como contexto
-- **Configuración**: editar saldo disponible, exportar JSON, borrar todo
+- **Simulador**: depósitos y pagos hipotéticos con cobros/pagos reales disponibles con un click
+- **Ajustes**: saldo disponible, exportar JSON, borrar todo
 
-## Lógica central
-- `calcFlujo()` en `app.js` genera la proyección: parte del saldo inicial y aplica cobros/pagos pendientes ordenados por fecha
-- `TODAY` está hardcodeado como constante al tope de `app.js` — actualizar manualmente si se necesita
-- Al marcar un cobro como cobrado, suma el monto a `data.disponible`
-- Al marcar un pago como pagado, resta el monto de `data.disponible`
+## Lógica clave en app.js
+- `TODAY` es dinámico: `new Date().toISOString().slice(0,10)`
+- `calcFlujo()` genera la proyección ordenada por fecha
+- Cheques de tercero acreditan +2 días hábiles via `addBusinessDays()`
+- `fechaAcreditacion(cobro)` devuelve fecha real según tipo
+- Panel "¿Qué puedo pagar hoy?" usa `recOrder[]` para orden arrastrable (drag & drop)
+- Simulador cheques: `CHEQ_IMP=0.006` + `CHEQ_SIRCREB=0.015` = 2.1% sobre bruto (cta cte Mendoza)
+- Al confirmar depósito: marca cobros cobrados, suma neto al disponible, guarda en localStorage
 
-## Asistente IA
-- Llama directamente a la API de Anthropic desde el browser (requiere API key en el código o proxy)
-- El system prompt inyecta todos los datos financieros actuales como contexto
-- ADVERTENCIA: la API key no debería estar expuesta en frontend. Para producción, mover la llamada a un backend/proxy.
-
-## Cosas pendientes / posibles mejoras
-- La constante `TODAY` debería ser dinámica (`new Date().toISOString().slice(0,10)`)
-- La API key de Anthropic está expuesta en el frontend — considerar un proxy
-- Agregar categorías de cobros
-- Soporte multi-mes / histórico
+## Constantes a ajustar si cambian alícuotas
+```js
+const CHEQ_IMP = 0.006;      // Impuesto al cheque crédito (0.6%)
+const CHEQ_SIRCREB = 0.015;  // SIRCREB Mendoza cuenta corriente (1.5%)
+```
