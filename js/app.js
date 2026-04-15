@@ -48,6 +48,9 @@ function defaultData(){
       {id:16,nombre:'2544 Cuota',monto:3280000,fecha:'2026-04-29',pagado:false,cat:'Pr\u00e9stamo/cuota',prio:'normal',notas:''},
       {id:17,nombre:'contadora',monto:365000,fecha:'2026-04-29',pagado:false,cat:'Otro',prio:'normal',notas:''}
     ],
+    costosFijos: [
+      {id:1, nombre:'Vivian', monto:240000, cat:'Laboral', freq:'semanal', dia:'1', notas:'Todos los lunes'}
+    ],
     costos: [
       {id:1, nombre:'Vivian', monto:240000, cat:'Laboral', rec:'semanal', dia:'1', notas:'Todos los lunes'}
     ],
@@ -68,7 +71,29 @@ function defaultData(){
   };
 }
 
-let data=(() => { try{const d=localStorage.getItem('flujo_v5');const parsed=d?JSON.parse(d):defaultData();if(!parsed.ypf)parsed.ypf={precioPorLitro:2142,cargas:[]};return parsed;}catch(e){return defaultData();} })();
+function normalizeData(parsed){
+  if(!parsed.ypf) parsed.ypf={precioPorLitro:2142,cargas:[],choferes:[]};
+  if(!parsed.ypf.choferes) parsed.ypf.choferes=[];
+  if(!parsed.ypf.cargas) parsed.ypf.cargas=[];
+  if(!parsed.costosFijos) parsed.costosFijos=[];
+  if(parsed.costos?.length && !parsed.costosFijos.length){
+    parsed.costosFijos = parsed.costos
+      .filter(c=>['semanal','mensual','bimestral','trimestral','anual'].includes(c.rec))
+      .map(c=>({
+        id:c.id,
+        nombre:c.nombre,
+        monto:c.monto,
+        cat:c.cat,
+        freq:c.freq || c.rec,
+        dia:c.dia || '',
+        notas:c.notas || ''
+      }));
+  }
+  if(!parsed.costos) parsed.costos=[];
+  return parsed;
+}
+
+let data=(() => { try{const d=localStorage.getItem('flujo_v5');const parsed=normalizeData(d?JSON.parse(d):defaultData());return parsed;}catch(e){return defaultData();} })();
 function save(){localStorage.setItem('flujo_v5',JSON.stringify(data));updateTopbar();}
 function updateTopbar(){document.getElementById('top-saldo').textContent=fmt(data.disponible);}
 
@@ -111,6 +136,7 @@ function navigate(page,el){
   if(page==='simulador') { if(simOps.length===0){simSaldoInicial=data.disponible;document.getElementById('sim-fecha').value=TODAY;} renderSimulador(); }
   if(page==='flujo-fondos') renderFF();
   if(page==='ypf') renderYPF();
+  if(page==='costos-fijos') renderCF();
   if(page==='costos') renderCostos();
 }
 function toggleForm(id){document.getElementById(id).classList.toggle('open');}
@@ -161,7 +187,7 @@ function renderDashboard(){
     alerts+=`<div class="alert danger"><span class="alert-icon">⚠</span><div><strong>Saldo negativo proyectado</strong> el ${fmtDate(puntoCritico?.fecha)} — mínimo ${fmt(minSaldo)}. Revisá el flujo.</div></div>`;
   }
   const urgentesNoCubiertos=data.pagos.filter(p=>!p.pagado&&p.prio==='urgente'&&p.monto>data.disponible);
-  if(urgentesNoCubiertos.length&&!minSaldo<0) alerts+=`<div class="alert warning"><span class="alert-icon">◎</span><div><strong>Pagos urgentes que superan el disponible:</strong> ${urgentesNoCubiertos.map(v=>v.nombre).join(', ')}</div></div>`;
+  if(urgentesNoCubiertos.length && !(minSaldo<0)) alerts+=`<div class="alert warning"><span class="alert-icon">◎</span><div><strong>Pagos urgentes que superan el disponible:</strong> ${urgentesNoCubiertos.map(v=>v.nombre).join(', ')}</div></div>`;
 
   if(!alerts) alerts=`<div class="alert success"><span class="alert-icon">✓</span>Sin alertas críticas. Flujo bajo control.</div>`;
   document.getElementById('dash-alerts').innerHTML=alerts;
@@ -994,7 +1020,11 @@ function cheqDepositar() {
   const neto = bruto * (1 - CHEQ_TOTAL_RATE);
 
   // Marcar como cobrados y sumar neto al disponible
-  cobros.forEach(c => { c.cobrado = true; });
+  cobros.forEach(c => {
+    c.cobrado = true;
+    c.modalidadCobro = 'depositado';
+    c.netoAcreditado = calcNetoIngreso(c);
+  });
   data.disponible += neto;
   cheqSeleccionados.clear();
   save();
