@@ -30,7 +30,7 @@ function defaultData(){
       {id:14,nombre:'MYA',monto:2757815,fecha:'2026-04-27',tipo:'cheque',cobrado:false,notas:'Cheque 3288'},
       {id:15,nombre:'SAN MAXIMO',monto:5332866,fecha:'2026-05-06',tipo:'cheque',cobrado:false,notas:'Cheque 29077745'},
       {id:16,nombre:'CANALE',monto:278850,fecha:'2026-05-08',tipo:'cheque',cobrado:false,notas:'Cheque 7318'},
-      {id:17,nombre:'MAREF',monto:2669343.4,fecha:'2026-05-15',tipo:'cheque',cobrado:false,notas:'Cheque 5396'},
+      {id:17,nombre:'MAREF',monto:2669343.4,fecha:'2026-05-18',tipo:'cheque',cobrado:false,notas:'Cheque 5396'},
       {id:18,nombre:'ORREGO',monto:1500000,fecha:'2026-05-23',tipo:'cheque',cobrado:false,notas:'Cheque 961'},
       {id:19,nombre:'ORREGO',monto:820000,fecha:'2026-05-26',tipo:'cheque',cobrado:false,notas:'Cheque 63181042'}
     ],
@@ -45,7 +45,11 @@ function defaultData(){
       {id:8,nombre:'Camiones',monto:3280000,fecha:'2026-04-22',pagado:false,cat:'Proveedor',prio:'urgente',notas:'Importe tomado de pantalla'},
       {id:9,nombre:'Cheques',monto:1700000,fecha:'2026-04-22',pagado:false,cat:'Proveedor',prio:'urgente',notas:'Importe tomado de pantalla'},
       {id:10,nombre:'Tarjeta extra',monto:3000000,fecha:'2026-04-25',pagado:false,cat:'Tarjeta',prio:'urgente',notas:'Segundo importe de tarjeta en pantalla'},
-      {id:11,nombre:'Contadora',monto:365000,fecha:'2026-04-29',pagado:false,cat:'Otro',prio:'normal',notas:'Importe tomado de pantalla'}
+      {id:11,nombre:'Contadora',monto:365000,fecha:'2026-04-29',pagado:false,cat:'Otro',prio:'normal',notas:'Importe tomado de pantalla'},
+      {id:12,nombre:'seguro',monto:1705230,fecha:'2026-04-26',pagado:false,cat:'Otro',prio:'normal',notas:'Importe tomado de pantalla adicional'},
+      {id:13,nombre:'Vastra',monto:211750,fecha:'2026-04-28',pagado:false,cat:'Proveedor',prio:'normal',notas:'Importe tomado de pantalla adicional'},
+      {id:14,nombre:'Guerrini 359397',monto:413000,fecha:'2026-04-29',pagado:false,cat:'Proveedor',prio:'normal',notas:'Importe tomado de pantalla adicional'},
+      {id:15,nombre:'Guerrini 359403',monto:338540,fecha:'2026-04-29',pagado:false,cat:'Proveedor',prio:'normal',notas:'Importe tomado de pantalla adicional'}
     ],
     costosFijos: [
       {id:1, nombre:'Vivian', monto:240000, cat:'Laboral', freq:'semanal', dia:'1', notas:'Todos los lunes'}
@@ -94,7 +98,7 @@ function normalizeData(parsed){
   return parsed;
 }
 
-const STORAGE_KEY = 'flujo_v6';
+const STORAGE_KEY = 'flujo_v7';
 let data=(() => { try{const d=localStorage.getItem(STORAGE_KEY);const parsed=normalizeData(d?JSON.parse(d):defaultData());return parsed;}catch(e){return defaultData();} })();
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));updateTopbar();}
 function updateTopbar(){document.getElementById('top-saldo').textContent=fmt(data.disponible);}
