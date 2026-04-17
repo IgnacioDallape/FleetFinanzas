@@ -94,8 +94,9 @@ function normalizeData(parsed){
   return parsed;
 }
 
-let data=(() => { try{const d=localStorage.getItem('flujo_v5');const parsed=normalizeData(d?JSON.parse(d):defaultData());return parsed;}catch(e){return defaultData();} })();
-function save(){localStorage.setItem('flujo_v5',JSON.stringify(data));updateTopbar();}
+const STORAGE_KEY = 'flujo_v6';
+let data=(() => { try{const d=localStorage.getItem(STORAGE_KEY);const parsed=normalizeData(d?JSON.parse(d):defaultData());return parsed;}catch(e){return defaultData();} })();
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));updateTopbar();}
 function updateTopbar(){document.getElementById('top-saldo').textContent=fmt(data.disponible);}
 
 // FLUJO CALC
@@ -1541,7 +1542,7 @@ function cvGetCostosDelDia(fecha) {
 // ── CONFIG ──────────────────────────────────────────────────
 function saveSaldo(){const v=parseFloat(document.getElementById('conf-saldo').value);if(isNaN(v))return alert('Número inválido');data.disponible=v;save();alert('Saldo actualizado a '+fmt(v));}
 function exportJSON(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-'+TODAY+'.json';a.click();}
-function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem('flujo_v5');location.reload();}
+function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem(STORAGE_KEY);location.reload();}
 
 // INIT
 updateTopbar();
