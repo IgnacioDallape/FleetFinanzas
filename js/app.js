@@ -14,39 +14,38 @@ function defaultData(){
   return {
     disponible:0,
     cobros:[
-      {id:1,nombre:'Chia Orrego',monto:420000,fecha:'2026-04-05',tipo:'transferencia',cobrado:false,notas:''},
-      {id:2,nombre:'MAREF',monto:1210000,fecha:'2026-04-09',tipo:'transferencia',cobrado:false,notas:''},
-      {id:3,nombre:'MYA',monto:2757815,fecha:'2026-04-10',tipo:'transferencia',cobrado:false,notas:''},
-      {id:4,nombre:'San M\u00e1ximo',monto:3666542,fecha:'2026-04-11',tipo:'cheque',cobrado:false,notas:''},
-      {id:5,nombre:'Chia Orrego',monto:250000,fecha:'2026-04-13',tipo:'transferencia',cobrado:false,notas:''},
-      {id:6,nombre:'San M\u00e1ximo',monto:3683710,fecha:'2026-04-13',tipo:'cheque',cobrado:false,notas:''},
-      {id:7,nombre:'SAMA',monto:437360,fecha:'2026-04-16',tipo:'cheque',cobrado:false,notas:''},
-      {id:8,nombre:'SAN MAXIMO',monto:2180071,fecha:'2026-04-20',tipo:'cheque',cobrado:false,notas:''},
-      {id:9,nombre:'SAN MAXIMO',monto:3554828,fecha:'2026-04-21',tipo:'cheque',cobrado:false,notas:''},
-      {id:10,nombre:'QX',monto:850000,fecha:'2026-04-22',tipo:'cheque',cobrado:false,notas:''},
-      {id:11,nombre:'QX',monto:16614,fecha:'2026-04-23',tipo:'cheque',cobrado:false,notas:''},
-      {id:12,nombre:'QX',monto:660153,fecha:'2026-04-23',tipo:'cheque',cobrado:false,notas:''},
-      {id:13,nombre:'QX',monto:844832,fecha:'2026-04-24',tipo:'cheque',cobrado:false,notas:''},
-      {id:14,nombre:'MYA',monto:2757815,fecha:'2026-04-27',tipo:'cheque',cobrado:false,notas:''}
+      {id:1,nombre:'CANALE',monto:2500000,fecha:'2026-04-11',tipo:'cheque',cobrado:false,notas:'Cheque 340091'},
+      {id:2,nombre:'CHIA ORREGO',monto:250000,fecha:'2026-04-13',tipo:'cheque',cobrado:false,notas:'Cheque 24078'},
+      {id:3,nombre:'SAMA',monto:437360,fecha:'2026-04-16',tipo:'cheque',cobrado:false,notas:'Cheque 65602230'},
+      {id:4,nombre:'bodega del desierto',monto:1050692.92,fecha:'2026-04-20',tipo:'cheque',cobrado:false,notas:'Cheque 462'},
+      {id:5,nombre:'SAN MAXIMO',monto:2180070.9,fecha:'2026-04-20',tipo:'cheque',cobrado:false,notas:'Cheque 28867339'},
+      {id:6,nombre:'SAN MAXIMO',monto:3554827.5,fecha:'2026-04-21',tipo:'cheque',cobrado:false,notas:'Cheque 2664'},
+      {id:7,nombre:'TEMIS',monto:10297343.4,fecha:'2026-04-21',tipo:'cheque',cobrado:false,notas:'Cheque 3537'},
+      {id:8,nombre:'QX',monto:850000,fecha:'2026-04-22',tipo:'cheque',cobrado:false,notas:'Cheque 1645'},
+      {id:9,nombre:'QX',monto:16614.7,fecha:'2026-04-23',tipo:'cheque',cobrado:false,notas:'Cheque 28893695'},
+      {id:10,nombre:'QX',monto:660153.32,fecha:'2026-04-23',tipo:'cheque',cobrado:false,notas:'Cheque 53981601'},
+      {id:11,nombre:'CANALE',monto:1374802,fecha:'2026-04-24',tipo:'cheque',cobrado:false,notas:'Cheque 7279'},
+      {id:12,nombre:'QX',monto:844831.98,fecha:'2026-04-24',tipo:'cheque',cobrado:false,notas:'Cheque 1646'},
+      {id:13,nombre:'maref minning',monto:181500,fecha:'2026-04-27',tipo:'cheque',cobrado:false,notas:'Cheque 53575558'},
+      {id:14,nombre:'MYA',monto:2757815,fecha:'2026-04-27',tipo:'cheque',cobrado:false,notas:'Cheque 3288'},
+      {id:15,nombre:'SAN MAXIMO',monto:5332866,fecha:'2026-05-06',tipo:'cheque',cobrado:false,notas:'Cheque 29077745'},
+      {id:16,nombre:'CANALE',monto:278850,fecha:'2026-05-08',tipo:'cheque',cobrado:false,notas:'Cheque 7318'},
+      {id:17,nombre:'MAREF',monto:2669343.4,fecha:'2026-05-15',tipo:'cheque',cobrado:false,notas:'Cheque 5396'},
+      {id:18,nombre:'ORREGO',monto:1500000,fecha:'2026-05-23',tipo:'cheque',cobrado:false,notas:'Cheque 961'},
+      {id:19,nombre:'ORREGO',monto:820000,fecha:'2026-05-26',tipo:'cheque',cobrado:false,notas:'Cheque 63181042'}
     ],
     pagos:[
-      {id:1,nombre:'Planes AFIP',monto:936832,fecha:'2026-04-09',pagado:false,cat:'Impuesto/AFIP',prio:'urgente',notas:''},
-      {id:2,nombre:'Anticipo ganancias',monto:1120000,fecha:'2026-04-10',pagado:false,cat:'Impuesto/AFIP',prio:'urgente',notas:'Lo antes posible'},
-      {id:3,nombre:'Alq Vivian',monto:900000,fecha:'2026-04-10',pagado:false,cat:'Alquiler',prio:'urgente',notas:'Plazo m\u00e1x 10'},
-      {id:4,nombre:'Tarjeta',monto:2500000,fecha:'2026-04-10',pagado:false,cat:'Tarjeta',prio:'urgente',notas:'Plazo m\u00e1x 10'},
-      {id:5,nombre:'Mentor\u00eda',monto:1704000,fecha:'2026-04-10',pagado:true,cat:'Otro',prio:'normal',notas:'Plazo m\u00e1x 10'},
-      {id:6,nombre:'Cheques San Juan y Solis',monto:600000,fecha:'2026-04-10',pagado:false,cat:'Proveedor',prio:'urgente',notas:'359390+359407'},
-      {id:7,nombre:'Alquiler Ramiro',monto:990000,fecha:'2026-04-15',pagado:false,cat:'Alquiler',prio:'normal',notas:'Plazo m\u00e1x 15'},
-      {id:8,nombre:'Galeno',monto:560000,fecha:'2026-04-15',pagado:false,cat:'Otro',prio:'normal',notas:''},
-      {id:9,nombre:'Omint',monto:240000,fecha:'2026-04-15',pagado:false,cat:'Otro',prio:'normal',notas:''},
-      {id:10,nombre:'pressa',monto:80000,fecha:'2026-04-15',pagado:false,cat:'Otro',prio:'normal',notas:''},
-      {id:11,nombre:'tarjeta nacho',monto:800000,fecha:'2026-04-15',pagado:false,cat:'Tarjeta',prio:'normal',notas:''},
-      {id:12,nombre:'planes 16/4',monto:140000,fecha:'2026-04-16',pagado:false,cat:'Impuesto/AFIP',prio:'normal',notas:''},
-      {id:13,nombre:'sueldos x4',monto:1200000,fecha:'2026-04-17',pagado:false,cat:'Sueldo',prio:'urgente',notas:''},
-      {id:14,nombre:'prestamo',monto:560000,fecha:'2026-04-23',pagado:false,cat:'Pr\u00e9stamo/cuota',prio:'normal',notas:''},
-      {id:15,nombre:'Cheque seguro',monto:1705000,fecha:'2026-04-26',pagado:false,cat:'Otro',prio:'normal',notas:'seguro'},
-      {id:16,nombre:'2544 Cuota',monto:3280000,fecha:'2026-04-29',pagado:false,cat:'Pr\u00e9stamo/cuota',prio:'normal',notas:''},
-      {id:17,nombre:'contadora',monto:365000,fecha:'2026-04-29',pagado:false,cat:'Otro',prio:'normal',notas:''}
+      {id:1,nombre:'Tarjeta',monto:5900000,fecha:'2026-04-18',pagado:false,cat:'Tarjeta',prio:'urgente',notas:'Importe tomado de pantalla'},
+      {id:2,nombre:'OS Choferes',monto:262000,fecha:'2026-04-18',pagado:false,cat:'Otro',prio:'normal',notas:'Importe tomado de pantalla'},
+      {id:3,nombre:'nacho tari',monto:300000,fecha:'2026-04-18',pagado:false,cat:'Tarjeta',prio:'normal',notas:'Importe tomado de pantalla'},
+      {id:4,nombre:'Galeno',monto:650000,fecha:'2026-04-18',pagado:false,cat:'Otro',prio:'normal',notas:'Importe tomado de pantalla'},
+      {id:5,nombre:'Omint',monto:271000,fecha:'2026-04-18',pagado:false,cat:'Otro',prio:'normal',notas:'Importe tomado de pantalla'},
+      {id:6,nombre:'Planes',monto:1115000,fecha:'2026-04-18',pagado:false,cat:'Impuesto/AFIP',prio:'urgente',notas:'Importe tomado de pantalla'},
+      {id:7,nombre:'IIBB',monto:161000,fecha:'2026-04-18',pagado:false,cat:'Impuesto/AFIP',prio:'normal',notas:'Importe tomado de pantalla'},
+      {id:8,nombre:'Camiones',monto:3280000,fecha:'2026-04-22',pagado:false,cat:'Proveedor',prio:'urgente',notas:'Importe tomado de pantalla'},
+      {id:9,nombre:'Cheques',monto:1700000,fecha:'2026-04-22',pagado:false,cat:'Proveedor',prio:'urgente',notas:'Importe tomado de pantalla'},
+      {id:10,nombre:'Tarjeta extra',monto:3000000,fecha:'2026-04-25',pagado:false,cat:'Tarjeta',prio:'urgente',notas:'Segundo importe de tarjeta en pantalla'},
+      {id:11,nombre:'Contadora',monto:365000,fecha:'2026-04-29',pagado:false,cat:'Otro',prio:'normal',notas:'Importe tomado de pantalla'}
     ],
     costosFijos: [
       {id:1, nombre:'Vivian', monto:240000, cat:'Laboral', freq:'semanal', dia:'1', notas:'Todos los lunes'}
@@ -56,6 +55,7 @@ function defaultData(){
     ],
     ypf: {
       precioPorLitro: 2142,
+      deuda: 11000000,
       choferes: [
         {id:1, nombre:'Federico'},
         {id:2, nombre:'Mauricio'}
@@ -75,6 +75,7 @@ function normalizeData(parsed){
   if(!parsed.ypf) parsed.ypf={precioPorLitro:2142,cargas:[],choferes:[]};
   if(!parsed.ypf.choferes) parsed.ypf.choferes=[];
   if(!parsed.ypf.cargas) parsed.ypf.cargas=[];
+  if(typeof parsed.ypf.deuda !== 'number') parsed.ypf.deuda=0;
   if(!parsed.costosFijos) parsed.costosFijos=[];
   if(parsed.costos?.length && !parsed.costosFijos.length){
     parsed.costosFijos = parsed.costos
@@ -1208,6 +1209,7 @@ function ypfGetPrecio(){ return parseFloat(document.getElementById('ypf-precio')
 function renderYPF(){
   if(!data.ypf) data.ypf = {precioPorLitro:2142, cargas:[], choferes:[]};
   if(!data.ypf.choferes) data.ypf.choferes=[];
+  if(typeof data.ypf.deuda !== 'number') data.ypf.deuda = 0;
   const precioEl = document.getElementById('ypf-precio');
   if(precioEl && data.ypf.precioPorLitro) precioEl.value = data.ypf.precioPorLitro;
   document.getElementById('ypf-fecha').value = TODAY;
@@ -1258,7 +1260,9 @@ function ypfRenderChoferes(){
 
 function ypfRender(){
   if(!data.ypf) data.ypf = {precioPorLitro:2142, cargas:[], choferes:[]};
+  if(typeof data.ypf.deuda !== 'number') data.ypf.deuda = 0;
   const precio = ypfGetPrecio();
+  const deuda = data.ypf.deuda;
   const cargas = [...data.ypf.cargas].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const totalLitros = cargas.reduce((a,c)=>a+c.litros,0);
   const totalImporte = cargas.reduce((a,c)=>a+c.importe,0);
@@ -1276,6 +1280,7 @@ function ypfRender(){
     <div class="metric-card red"><div class="metric-label">Gasto este mes</div><div class="metric-value red">${fmt(importeMes)}</div></div>
     <div class="metric-card ${consumoMes?'amber':'blue'}"><div class="metric-label">C/100km este mes</div><div class="metric-value ${consumoMes?'amber':'blue'}">${consumoMes?consumoMes.toFixed(1)+' L':'—'}</div><div class="metric-sub">${consumoTotal?'Histórico: '+consumoTotal.toFixed(1)+' L/100km':''}</div></div>
     <div class="metric-card green"><div class="metric-label">Precio actual</div><div class="metric-value green">${fmt(precio)}<span style="font-size:12px;font-weight:400">/L</span></div></div>
+    <div class="metric-card ${deuda>0?'red':'blue'}"><div class="metric-label">Deuda YPF</div><div class="metric-value ${deuda>0?'red':'blue'}">${fmt(deuda)}</div><div class="metric-sub">${deuda>0?'pendiente':'sin deuda registrada'}</div></div>
   `;
 
   document.getElementById('ypf-tbody').innerHTML = cargas.length ? cargas.map(c=>{
