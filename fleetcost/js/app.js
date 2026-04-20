@@ -370,6 +370,7 @@ function histCardCompactHTML(v, n, showChofer) {
       <div class="hcc-meta">
         <span class="hcc-date">${v.fecha}</span>
         <span class="hist-badge ${isPos?'pos':'neg'}" style="font-size:10px;padding:2px 8px;">${isPos?'+':''}${fmtM(Math.round(v.ganancia))}</span>
+        <button class="hcc-edit" onclick="editViaje(${v.id});event.stopPropagation();" title="Editar viaje"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <div class="hcc-chev" id="${cid}-icon"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
       </div>
     </div>
@@ -475,6 +476,38 @@ function renderHistorial() {
   document.getElementById('hs-ganancia').className    = 'hs-value' + (isGanPos ? ' green' : '');
   document.getElementById('hs-margen').textContent    = avgMargen.toFixed(1) + '%';
   document.getElementById('hs-km').textContent        = totalKm.toLocaleString('es-AR') + ' km';
+}
+
+function editViaje(id) {
+  const v = viajesGuardados.find(x => x.id === id);
+  if (!v) return;
+
+  // Remover del historial (se re-guarda al guardar de nuevo)
+  viajesGuardados = viajesGuardados.filter(x => x.id !== id);
+  document.getElementById('tab-count').textContent = viajesGuardados.length;
+
+  // Ir a calculadora
+  switchTab('calculadora');
+
+  // Llenar campos del simulador
+  document.getElementById('v-facturado').value     = v.facturado    || 0;
+  document.getElementById('v-km').value            = v.vkm          || 0;
+  document.getElementById('v-peajes').value        = v.peajes       || 0;
+  document.getElementById('v-litros').value        = v.litros       || 0;
+  document.getElementById('v-chofer-pago').value   = v.choferPago   || 0;
+  document.getElementById('v-chofer-nombre').value = v.choferNombre || '';
+  document.getElementById('v-desc').value          = v.desc         || '';
+
+  // Retorno
+  if (v.hasRetorno !== _hasRetorno) toggleRetorno();
+  if (v.hasRetorno) {
+    document.getElementById('v-retorno-monto').value   = v.retornoMonto   || 0;
+    document.getElementById('v-retorno-km').value      = v.retornoKm      || 0;
+    document.getElementById('v-retorno-cliente').value = v.retornoCliente || '';
+  }
+
+  calcularViaje();
+  document.querySelector('.trip-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function limpiarHistorial() {

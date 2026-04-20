@@ -433,13 +433,23 @@ body{
 
 /* ── COMPACT TRIP CARD ── */
 .hist-card-compact{
-  background:var(--bg2);border:1px solid var(--border);
+  background:#F0FDF9;border:1px solid #D1FAE5;
   border-radius:var(--r);margin-bottom:5px;overflow:hidden;
   box-shadow:var(--shadow-sm);transition:box-shadow .15s,border-color .15s;
 }
-.hist-card-compact:hover{box-shadow:var(--shadow);border-color:var(--border2);}
+.hist-card-compact:hover{box-shadow:var(--shadow);border-color:#A7F3D0;}
 .hcc-header{display:flex;align-items:center;gap:10px;padding:9px 13px;cursor:pointer;user-select:none;}
-.hcc-header:hover{background:var(--bg3);}
+.hcc-header:hover{background:#E6FBF6;}
+/* Edit button */
+.hcc-edit{
+  display:flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border-radius:5px;border:1px solid #A7F3D0;
+  background:var(--bg2);color:var(--muted2);cursor:pointer;
+  flex-shrink:0;transition:all .15s;
+}
+.hcc-edit:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+.hcc-edit svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.hcc-body{padding:0 13px 10px;border-top:1px solid #D1FAE5;background:#F7FFFE;}
 .hcc-main{flex:1;min-width:0;display:flex;align-items:center;gap:7px;overflow:hidden;}
 .hcc-desc{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
 .hcc-ret{color:var(--accent);font-size:10px;font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0;}
