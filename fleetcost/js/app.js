@@ -116,10 +116,10 @@ function calcularViaje() {
   const elA = document.getElementById('trip-result-a');
   const elB = document.getElementById('trip-result-b');
 
-  if (facturado === 0 && vkm === 0 && peajes === 0 && litros === 0) {
+  if (vkm === 0) {
     elA.innerHTML = `<div class="trip-empty">
       <svg viewBox="0 0 24 24" style="width:26px;height:26px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      <div>completá los datos<br>del viaje</div>
+      <div>ingresá los km del viaje<br><span style="font-size:11px;color:var(--muted2);">los costos se calculan automáticamente<br>desde las tarifas configuradas</span></div>
     </div>`;
     elB.innerHTML = '';
     return;
