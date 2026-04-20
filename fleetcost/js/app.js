@@ -587,6 +587,10 @@ function selectUnit(id) {
 }
 
 // ── INIT ──────────────────────────────────────────────
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'units-updated') populateUnitSelector();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('footer-date').textContent =
     new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });

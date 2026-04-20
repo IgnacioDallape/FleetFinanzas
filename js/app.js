@@ -1683,6 +1683,13 @@ function openEditUnit(id) {
   document.getElementById('unit-f-nombre').focus();
 }
 
+function notifyFleetCostUnits() {
+  const iframe = document.querySelector('.fleetcost-frame');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'units-updated' }, '*');
+  }
+}
+
 function saveUnit() {
   const nombre = document.getElementById('unit-f-nombre').value.trim();
   if (!nombre) { alert('Ingresá el nombre de la unidad'); return; }
@@ -1709,6 +1716,7 @@ function saveUnit() {
   saveUnits(units);
   document.getElementById('unit-form-wrap').style.display = 'none';
   renderUnidades();
+  notifyFleetCostUnits();
 }
 
 function cancelUnit() {
@@ -1719,6 +1727,7 @@ function deleteUnit(id) {
   if (!confirm('¿Eliminar esta unidad?')) return;
   saveUnits(loadUnits().filter(u => u.id !== id));
   renderUnidades();
+  notifyFleetCostUnits();
 }
 
 // INIT
