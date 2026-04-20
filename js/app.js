@@ -207,6 +207,15 @@ function navigate(page,el){
 }
 function toggleForm(id){document.getElementById(id).classList.toggle('open');}
 
+// ── NOTIFICATION BELL ───────────────────────────────────────
+function toggleNotifPanel(){
+  document.getElementById('notif-wrap').classList.toggle('notif-open');
+}
+document.addEventListener('click',function(e){
+  const wrap=document.getElementById('notif-wrap');
+  if(wrap&&!wrap.contains(e.target)) wrap.classList.remove('notif-open');
+});
+
 // ── DASHBOARD ──────────────────────────────────────────────
 function renderDashboard(){
   const now=new Date();
@@ -229,34 +238,43 @@ function renderDashboard(){
     <div class="metric-card red"><div class="metric-label">Costos fijos/mes</div><div class="metric-value red" id="dash-cf-total">—</div></div>
   `;
 
-  // ALERTAS INTELIGENTES
-  let alerts='';
+  // ALERTAS INTELIGENTES → campana de notificaciones
+  const alertsArr=[];
   const vencidos=data.pagos.filter(p=>!p.pagado&&p.fecha<TODAY);
-  if(vencidos.length) alerts+=`<div class="alert danger"><span class="alert-icon">⚠</span><div><strong>Pagos vencidos:</strong> ${vencidos.map(v=>v.nombre).join(', ')} — ${fmt(vencidos.reduce((a,p)=>a+p.monto,0))} sin pagar</div></div>`;
+  if(vencidos.length) alertsArr.push({type:'danger',icon:'⚠',msg:`<strong>Pagos vencidos:</strong> ${vencidos.map(v=>v.nombre).join(', ')} — ${fmt(vencidos.reduce((a,p)=>a+p.monto,0))} sin pagar`});
 
   const hoy=data.pagos.filter(p=>!p.pagado&&p.fecha===TODAY);
-  if(hoy.length) alerts+=`<div class="alert danger"><span class="alert-icon">⚡</span><div><strong>Vencen hoy:</strong> ${hoy.map(v=>v.nombre).join(', ')} — ${fmt(hoy.reduce((a,p)=>a+p.monto,0))}</div></div>`;
+  if(hoy.length) alertsArr.push({type:'danger',icon:'⚡',msg:`<strong>Vencen hoy:</strong> ${hoy.map(v=>v.nombre).join(', ')} — ${fmt(hoy.reduce((a,p)=>a+p.monto,0))}`});
 
   const manana=new Date(TODAY); manana.setDate(manana.getDate()+1);
   const mananaStr=manana.toISOString().slice(0,10);
   const mananaP=data.pagos.filter(p=>!p.pagado&&p.fecha===mananaStr);
-  if(mananaP.length) alerts+=`<div class="alert warning"><span class="alert-icon">◎</span><div><strong>Vencen mañana:</strong> ${mananaP.map(v=>v.nombre).join(', ')} — ${fmt(mananaP.reduce((a,p)=>a+p.monto,0))}</div></div>`;
+  if(mananaP.length) alertsArr.push({type:'warning',icon:'◎',msg:`<strong>Vencen mañana:</strong> ${mananaP.map(v=>v.nombre).join(', ')} — ${fmt(mananaP.reduce((a,p)=>a+p.monto,0))}`});
 
   const enSemana=data.pagos.filter(p=>!p.pagado&&p.fecha>mananaStr&&diffDays(p.fecha)<=7);
-  if(enSemana.length) alerts+=`<div class="alert warning"><span class="alert-icon">◷</span><div><strong>${enSemana.length} pagos en 7 días</strong> por ${fmt(enSemana.reduce((a,p)=>a+p.monto,0))} — ${enSemana.map(v=>v.nombre).join(', ')}</div></div>`;
+  if(enSemana.length) alertsArr.push({type:'warning',icon:'◷',msg:`<strong>${enSemana.length} pagos en 7 días</strong> por ${fmt(enSemana.reduce((a,p)=>a+p.monto,0))} — ${enSemana.map(v=>v.nombre).join(', ')}`});
 
   const cobrosCercanos=data.cobros.filter(c=>!c.cobrado&&diffDays(fechaAcreditacion(c))>=0&&diffDays(fechaAcreditacion(c))<=3);
-  if(cobrosCercanos.length) alerts+=`<div class="alert success"><span class="alert-icon">↓</span><div><strong>Cobros acreditando pronto:</strong> ${cobrosCercanos.map(c=>c.nombre+' '+fmt(c.monto)).join(', ')}</div></div>`;
+  if(cobrosCercanos.length) alertsArr.push({type:'success',icon:'↓',msg:`<strong>Cobros acreditando pronto:</strong> ${cobrosCercanos.map(c=>c.nombre+' '+fmt(c.monto)).join(', ')}`});
 
   if(minSaldo<0){
     const puntoCritico=flujo.find(f=>f.saldo<0);
-    alerts+=`<div class="alert danger"><span class="alert-icon">⚠</span><div><strong>Saldo negativo proyectado</strong> el ${fmtDate(puntoCritico?.fecha)} — mínimo ${fmt(minSaldo)}. Revisá el flujo.</div></div>`;
+    alertsArr.push({type:'danger',icon:'⚠',msg:`<strong>Saldo negativo proyectado</strong> el ${fmtDate(puntoCritico?.fecha)} — mínimo ${fmt(minSaldo)}. Revisá el flujo.`});
   }
   const urgentesNoCubiertos=data.pagos.filter(p=>!p.pagado&&p.prio==='urgente'&&p.monto>data.disponible);
-  if(urgentesNoCubiertos.length && !(minSaldo<0)) alerts+=`<div class="alert warning"><span class="alert-icon">◎</span><div><strong>Pagos urgentes que superan el disponible:</strong> ${urgentesNoCubiertos.map(v=>v.nombre).join(', ')}</div></div>`;
+  if(urgentesNoCubiertos.length && !(minSaldo<0)) alertsArr.push({type:'warning',icon:'◎',msg:`<strong>Pagos urgentes que superan el disponible:</strong> ${urgentesNoCubiertos.map(v=>v.nombre).join(', ')}`});
 
-  if(!alerts) alerts=`<div class="alert success"><span class="alert-icon">✓</span>Sin alertas críticas. Flujo bajo control.</div>`;
-  document.getElementById('dash-alerts').innerHTML=alerts;
+  // Populate notification bell panel & badge
+  const _notifPanel=document.getElementById('notif-panel');
+  const _notifBadge=document.getElementById('notif-badge');
+  if(_notifPanel){
+    const items=alertsArr.length
+      ? alertsArr.map(a=>`<div class="notif-item notif-${a.type}"><span class="notif-icon">${a.icon}</span><div>${a.msg}</div></div>`).join('')
+      : `<div class="notif-empty">✓ Sin alertas críticas. Flujo bajo control.</div>`;
+    _notifPanel.innerHTML=`<div class="notif-panel-header">Notificaciones</div>`+items;
+    const critCount=alertsArr.filter(a=>a.type==='danger'||a.type==='warning').length;
+    if(_notifBadge){_notifBadge.textContent=critCount;_notifBadge.style.display=critCount>0?'flex':'none';}
+  }
 
   // QUÉ PUEDO PAGAR HOY
   renderRecomendacion();
