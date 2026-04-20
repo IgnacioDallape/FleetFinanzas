@@ -6,6 +6,7 @@ function fmtM(n) { return '$ ' + fmtN(n); }
 let _totalKmG = 0;
 let _combustKmG = 0;
 let _indKmG = 0;
+let _choferKmG = 0;
 
 function calcular() {
   const km = parseFloat(document.getElementById('km').value) || 0;
@@ -62,7 +63,8 @@ function calcular() {
   const totalKm = (indKm || 0) + choferKm + combustKm;
   _totalKmG = totalKm;
   _combustKmG = combustKm;
-  _indKmG = (indKm || 0) + choferKm;
+  _choferKmG = choferKm;
+  _indKmG = indKm || 0;
 
   if (km > 0 && totalKm > 0) {
     document.getElementById('r-total-km').textContent = fmtN(totalKm);
@@ -126,7 +128,10 @@ function calcularViaje() {
   // Combustible real si hay litros, sino teórico sobre km totales
   const costoLitros  = litros > 0 ? litros * precioL : null;
   const costoCombust = costoLitros !== null ? costoLitros : _combustKmG * totalKm;
-  const costoViaje   = _indKmG * totalKm + costoCombust + peajes + choferPago;
+  // Chofer: usa pago real si se ingresó, sino calcula teórico por km
+  const choferTeor   = _choferKmG * totalKm;
+  const choferCosto  = choferPago > 0 ? choferPago : choferTeor;
+  const costoViaje   = _indKmG * totalKm + costoCombust + peajes + choferCosto;
   const ganancia     = totalFacturado - costoViaje;
   const margen       = totalFacturado > 0 ? ganancia / totalFacturado * 100 : 0;
   const isPos        = ganancia >= 0;
@@ -164,17 +169,17 @@ function calcularViaje() {
     <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;">Desglose de costos del viaje</div>
     <div class="trip-desglose">
       <div class="td-head"><span>Concepto</span><span>Monto</span></div>
-      <div class="td-row">
-        <span class="td-label"><span class="td-pip" style="background:#3B7DD8;"></span>Costos indirectos + chofer (km)</span>
+      ${_indKmG > 0 ? `<div class="td-row">
+        <span class="td-label"><span class="td-pip" style="background:#3B7DD8;"></span>Costos indirectos (km)</span>
         <span class="td-val">${fmtM(_indKmG * totalKm)}</span>
+      </div>` : ''}
+      <div class="td-row">
+        <span class="td-label"><span class="td-pip" style="background:#2BB89A;"></span>Chofer${choferPago > 0 ? ' (real)' : ' (por km)'}</span>
+        <span class="td-val">${_choferKmG > 0 || choferPago > 0 ? fmtM(choferCosto) : '—'}</span>
       </div>
       <div class="td-row">
         <span class="td-label"><span class="td-pip" style="background:#D4820A;"></span>Combustible${costoLitros !== null ? ' (real)' : ' (teórico)'}</span>
         <span class="td-val">${fmtM(costoCombust)}</span>
-      </div>
-      <div class="td-row">
-        <span class="td-label"><span class="td-pip" style="background:#2BB89A;"></span>Chofer (pago real)</span>
-        <span class="td-val">${choferPago > 0 ? fmtM(choferPago) : '—'}</span>
       </div>
       <div class="td-row">
         <span class="td-label"><span class="td-pip" style="background:#8B5CF6;"></span>Peajes</span>
@@ -267,8 +272,9 @@ function guardarViaje() {
     return;
   }
 
-  const costoLitrosG = litros > 0 ? litros * precioL : _combustKmG * totalKm;
-  const costoViaje   = _indKmG * totalKm + costoLitrosG + peajes + choferPago;
+  const costoLitrosG  = litros > 0 ? litros * precioL : _combustKmG * totalKm;
+  const choferCostoG  = choferPago > 0 ? choferPago : _choferKmG * totalKm;
+  const costoViaje    = _indKmG * totalKm + costoLitrosG + peajes + choferCostoG;
   const ganancia     = totalFacturado - costoViaje;
   const margen       = totalFacturado > 0 ? ganancia / totalFacturado * 100 : 0;
   const consumoReal  = (litros > 0 && totalKm > 0) ? litros / totalKm * 100 : null;
