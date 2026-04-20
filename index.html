@@ -13,8 +13,8 @@
 (function(){
   try{
     var s=localStorage.getItem('fleet_session')||sessionStorage.getItem('fleet_session');
-    if(s){var d=JSON.parse(s);if(!d.expiry||Date.now()<d.expiry){document.documentElement.classList.add('is-authed');window._authUserId=d.userId||'nacho';return;}}
-    localStorage.removeItem('fleet_session');
+    if(s){var d=JSON.parse(s);if(!d.expiry||Date.now()<d.expiry){document.documentElement.classList.add('is-authed');window._authUserId=d.userId||'nacho';localStorage.setItem('fleet_uid',d.userId||'nacho');return;}}
+    localStorage.removeItem('fleet_session');localStorage.removeItem('fleet_uid');
   }catch(e){}
 })();
 </script>
