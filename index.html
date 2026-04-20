@@ -45,6 +45,7 @@
     <div class="nav-section">
       <div class="nav-label">Apps</div>
       <div class="nav-item" onclick="navigate('fleetcost',this)"><span class="nav-icon">🚛</span>FleetCost</div>
+      <div class="nav-item" onclick="navigate('unidades',this)"><span class="nav-icon">⚙</span>Unidades</div>
     </div>
   </nav>
 
@@ -653,6 +654,76 @@
     <!-- FLEETCOST -->
     <div class="page" id="page-fleetcost">
       <iframe src="fleetcost/" class="fleetcost-frame"></iframe>
+    </div>
+
+    <!-- UNIDADES -->
+    <div class="page" id="page-unidades">
+      <div class="page-header">
+        <div class="page-title">Unidades</div>
+        <div class="page-sub">Costos fijos por camión</div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+        <button class="btn btn-accent" onclick="openAddUnit()">+ Nueva unidad</button>
+      </div>
+
+      <!-- FORM -->
+      <div id="unit-form-wrap" style="display:none;" class="card unit-form-wrap">
+        <div class="card-header">
+          <span class="card-title" id="unit-form-title">Nueva unidad</span>
+        </div>
+        <div class="card-body">
+          <input type="hidden" id="unit-edit-id">
+          <div class="unit-form-grid">
+            <div>
+              <label class="form-label">Nombre del camión</label>
+              <input class="form-input" type="text" id="unit-f-nombre" placeholder="Ej: Axor 2544">
+            </div>
+            <div>
+              <label class="form-label">Km base mensuales</label>
+              <input class="form-input" type="number" id="unit-f-km" placeholder="10000">
+            </div>
+            <div>
+              <label class="form-label">Seguro ($/mes)</label>
+              <input class="form-input" type="number" id="unit-f-seguro" placeholder="320000">
+            </div>
+            <div>
+              <label class="form-label">Patente / impuestos ($/mes)</label>
+              <input class="form-input" type="number" id="unit-f-patente" placeholder="45000">
+            </div>
+            <div>
+              <label class="form-label">Mantenimiento ($/mes)</label>
+              <input class="form-input" type="number" id="unit-f-manto" placeholder="180000">
+            </div>
+            <div>
+              <label class="form-label">Aceite y lubricantes ($/mes)</label>
+              <input class="form-input" type="number" id="unit-f-aceite" placeholder="55000">
+            </div>
+            <div>
+              <label class="form-label">Cubiertas / neumáticos ($/mes)</label>
+              <input class="form-input" type="number" id="unit-f-cubiertas" placeholder="140000">
+            </div>
+            <div>
+              <label class="form-label">Chofer ($/km)</label>
+              <input class="form-input" type="number" id="unit-f-chofer" placeholder="175">
+            </div>
+            <div>
+              <label class="form-label">Precio combustible ($/litro)</label>
+              <input class="form-input" type="number" id="unit-f-litro" placeholder="2082">
+            </div>
+            <div>
+              <label class="form-label">Rendimiento (km/litro)</label>
+              <input class="form-input" type="number" id="unit-f-rend" placeholder="2.7" step="0.1">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="btn btn-accent" onclick="saveUnit()">Guardar</button>
+            <button class="btn" onclick="cancelUnit()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="unidades-list"></div>
     </div>
 
   </main>
