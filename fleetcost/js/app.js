@@ -83,14 +83,33 @@ function calcular() {
   calcularViaje();
 }
 
+let _hasRetorno = false;
+
+function toggleRetorno() {
+  _hasRetorno = !_hasRetorno;
+  const check = document.getElementById('rt-check');
+  const icon  = document.getElementById('rt-check-icon');
+  const fields = document.getElementById('retorno-fields');
+  check.style.background  = _hasRetorno ? 'var(--accent)' : '';
+  check.style.borderColor = _hasRetorno ? 'var(--accent)' : '';
+  icon.style.display  = _hasRetorno ? 'block' : 'none';
+  fields.style.display = _hasRetorno ? 'block' : 'none';
+  calcularViaje();
+}
+
 function calcularViaje() {
-  const facturado  = parseFloat(document.getElementById('v-facturado').value) || 0;
-  const vkm        = parseFloat(document.getElementById('v-km').value) || 0;
-  const peajes     = parseFloat(document.getElementById('v-peajes').value) || 0;
-  const litros     = parseFloat(document.getElementById('v-litros').value) || 0;
-  const choferPago = parseFloat(document.getElementById('v-chofer-pago').value) || 0;
-  const precioL    = parseFloat(document.getElementById('precio-litro').value) || 0;
-  const rendTeo    = parseFloat(document.getElementById('rendimiento').value) || 0;
+  const facturado      = parseFloat(document.getElementById('v-facturado').value) || 0;
+  const vkm            = parseFloat(document.getElementById('v-km').value) || 0;
+  const peajes         = parseFloat(document.getElementById('v-peajes').value) || 0;
+  const litros         = parseFloat(document.getElementById('v-litros').value) || 0;
+  const choferPago     = parseFloat(document.getElementById('v-chofer-pago').value) || 0;
+  const precioL        = parseFloat(document.getElementById('precio-litro').value) || 0;
+  const rendTeo        = parseFloat(document.getElementById('rendimiento').value) || 0;
+  const retornoMonto   = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-monto').value) || 0) : 0;
+  const retornoKmInput = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-km').value) || 0) : 0;
+  const retornoKm      = _hasRetorno ? (retornoKmInput > 0 ? retornoKmInput : vkm) : 0;
+  const totalKm        = vkm + retornoKm;
+  const totalFacturado = facturado + retornoMonto;
 
   const elA = document.getElementById('trip-result-a');
   const elB = document.getElementById('trip-result-b');
@@ -104,15 +123,15 @@ function calcularViaje() {
     return;
   }
 
-  // Usar combustible real (litros × precio) si se ingresaron litros, sino el teórico por km
-  const costoLitros    = litros > 0 ? litros * precioL : null;
-  const costoCombust   = costoLitros !== null ? costoLitros : _combustKmG * vkm;
-  const costoViaje     = _indKmG * vkm + costoCombust + peajes + choferPago;
-  const ganancia       = facturado - costoViaje;
-  const margen         = facturado > 0 ? ganancia / facturado * 100 : 0;
-  const isPos          = ganancia >= 0;
+  // Combustible real si hay litros, sino teórico sobre km totales
+  const costoLitros  = litros > 0 ? litros * precioL : null;
+  const costoCombust = costoLitros !== null ? costoLitros : _combustKmG * totalKm;
+  const costoViaje   = _indKmG * totalKm + costoCombust + peajes + choferPago;
+  const ganancia     = totalFacturado - costoViaje;
+  const margen       = totalFacturado > 0 ? ganancia / totalFacturado * 100 : 0;
+  const isPos        = ganancia >= 0;
 
-  const consumoReal = (litros > 0 && vkm > 0) ? (litros / vkm * 100) : null;
+  const consumoReal = (litros > 0 && totalKm > 0) ? (litros / totalKm * 100) : null;
   const consumoTeo  = rendTeo > 0 ? (100 / rendTeo) : null;
   const diff        = (consumoReal !== null && consumoTeo !== null) ? consumoReal - consumoTeo : null;
   const isAlto      = diff !== null && diff > consumoTeo * 0.1;
@@ -121,13 +140,17 @@ function calcularViaje() {
     <div class="gh-card ${isPos ? 'pos' : 'neg'}">
       <div class="gh-tag">${isPos ? 'ganancia neta' : 'pérdida neta'}</div>
       <div class="gh-value">${isPos ? '' : '- '}${fmtM(Math.abs(ganancia))}</div>
-      <div class="gh-sub">margen ${margen.toFixed(1)}% · sobre ${fmtM(facturado)} facturado</div>
+      <div class="gh-sub">margen ${margen.toFixed(1)}% · sobre ${fmtM(totalFacturado)} facturado${_hasRetorno ? ' (ida + retorno)' : ''}</div>
     </div>
+    ${_hasRetorno ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;">
+      <div class="tm-card"><div class="tm-tag">Ida</div><div class="tm-val">${fmtM(facturado)}</div><div class="tm-sub">${vkm} km</div></div>
+      <div class="tm-card"><div class="tm-tag">Retorno</div><div class="tm-val">${fmtM(retornoMonto)}</div><div class="tm-sub">${retornoKm} km</div></div>
+    </div>` : ''}
     <div class="trip-metrics">
       <div class="tm-card">
         <div class="tm-tag">Costo total del viaje</div>
         <div class="tm-val">${fmtM(costoViaje)}</div>
-        <div class="tm-sub">${vkm > 0 ? vkm.toLocaleString('es-AR') + ' km recorridos' : 'sin km'}</div>
+        <div class="tm-sub">${totalKm > 0 ? totalKm.toLocaleString('es-AR') + ' km totales' : 'sin km'}</div>
       </div>
       <div class="tm-card">
         <div class="tm-tag">Costo operativo / km</div>
@@ -143,7 +166,7 @@ function calcularViaje() {
       <div class="td-head"><span>Concepto</span><span>Monto</span></div>
       <div class="td-row">
         <span class="td-label"><span class="td-pip" style="background:#3B7DD8;"></span>Costos indirectos + chofer (km)</span>
-        <span class="td-val">${fmtM(_indKmG * vkm)}</span>
+        <span class="td-val">${fmtM(_indKmG * totalKm)}</span>
       </div>
       <div class="td-row">
         <span class="td-label"><span class="td-pip" style="background:#D4820A;"></span>Combustible${costoLitros !== null ? ' (real)' : ' (teórico)'}</span>
@@ -217,14 +240,21 @@ function switchTab(tab) {
 let viajesGuardados = [];
 
 function guardarViaje() {
-  const facturado  = parseFloat(document.getElementById('v-facturado').value) || 0;
-  const vkm        = parseFloat(document.getElementById('v-km').value) || 0;
-  const peajes     = parseFloat(document.getElementById('v-peajes').value) || 0;
-  const litros     = parseFloat(document.getElementById('v-litros').value) || 0;
-  const choferPago = parseFloat(document.getElementById('v-chofer-pago').value) || 0;
-  const desc       = document.getElementById('v-desc').value.trim() || 'Viaje sin descripción';
-  const precioL    = parseFloat(document.getElementById('precio-litro').value) || 0;
-  const rendTeo    = parseFloat(document.getElementById('rendimiento').value) || 0;
+  const facturado      = parseFloat(document.getElementById('v-facturado').value) || 0;
+  const vkm            = parseFloat(document.getElementById('v-km').value) || 0;
+  const peajes         = parseFloat(document.getElementById('v-peajes').value) || 0;
+  const litros         = parseFloat(document.getElementById('v-litros').value) || 0;
+  const choferPago     = parseFloat(document.getElementById('v-chofer-pago').value) || 0;
+  const choferNombre   = document.getElementById('v-chofer-nombre').value.trim() || 'Sin asignar';
+  const desc           = document.getElementById('v-desc').value.trim() || 'Viaje sin descripción';
+  const precioL        = parseFloat(document.getElementById('precio-litro').value) || 0;
+  const rendTeo        = parseFloat(document.getElementById('rendimiento').value) || 0;
+  const retornoMonto   = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-monto').value) || 0) : 0;
+  const retornoKmInput = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-km').value) || 0) : 0;
+  const retornoKm      = _hasRetorno ? (retornoKmInput > 0 ? retornoKmInput : vkm) : 0;
+  const retornoCliente = _hasRetorno ? (document.getElementById('v-retorno-cliente').value.trim() || '') : '';
+  const totalKm        = vkm + retornoKm;
+  const totalFacturado = facturado + retornoMonto;
 
   if (facturado === 0 && vkm === 0) {
     const t = document.getElementById('save-toast');
@@ -237,17 +267,21 @@ function guardarViaje() {
     return;
   }
 
-  const costoLitrosG = litros > 0 ? litros * precioL : _combustKmG * vkm;
-  const costoViaje   = _indKmG * vkm + costoLitrosG + peajes + choferPago;
-  const ganancia     = facturado - costoViaje;
-  const margen       = facturado > 0 ? ganancia / facturado * 100 : 0;
-  const consumoReal  = (litros > 0 && vkm > 0) ? litros / vkm * 100 : null;
+  const costoLitrosG = litros > 0 ? litros * precioL : _combustKmG * totalKm;
+  const costoViaje   = _indKmG * totalKm + costoLitrosG + peajes + choferPago;
+  const ganancia     = totalFacturado - costoViaje;
+  const margen       = totalFacturado > 0 ? ganancia / totalFacturado * 100 : 0;
+  const consumoReal  = (litros > 0 && totalKm > 0) ? litros / totalKm * 100 : null;
   const consumoTeo   = rendTeo > 0 ? 100 / rendTeo : null;
+  const fechaObj     = new Date();
 
   const viaje = {
     id: Date.now(),
-    fecha: new Date().toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    desc, facturado, vkm, peajes, litros, choferPago,
+    fecha: fechaObj.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    mesKey: `${fechaObj.getFullYear()}-${String(fechaObj.getMonth()+1).padStart(2,'0')}`,
+    mesLabel: fechaObj.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
+    desc, facturado, totalFacturado, vkm, totalKm, peajes, litros, choferPago,
+    choferNombre, retornoMonto, retornoKm, retornoCliente, hasRetorno: _hasRetorno,
     costoViaje, ganancia, margen, consumoReal, consumoTeo, precioL,
   };
 
@@ -263,6 +297,56 @@ function guardarViaje() {
   t.style.cursor = 'pointer';
   t.onclick = () => { switchTab('historial'); t.style.display = 'none'; };
   setTimeout(() => { t.style.display = 'none'; t.onclick = null; }, 4000);
+}
+
+// ── HISTORIAL VISTA ───────────────────────────────────
+let histVista = 'mes';
+
+function setHistVista(v) {
+  histVista = v;
+  document.getElementById('hf-mes').classList.toggle('active', v === 'mes');
+  document.getElementById('hf-chofer').classList.toggle('active', v === 'chofer');
+  renderHistorial();
+}
+
+function histCardHTML(v, n) {
+  const isPos = v.ganancia >= 0;
+  return `
+  <div class="hist-card">
+    <div class="hist-card-head">
+      <div class="hist-card-left">
+        <span class="hist-num">#${n}</span>
+        <span class="hist-desc">${v.desc}${v.hasRetorno ? ' <span style="font-size:9px;color:var(--accent);font-family:\'JetBrains Mono\',monospace;letter-spacing:.05em;">↩ retorno</span>' : ''}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="hist-date">${v.fecha}</span>
+        <span class="hist-badge ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${fmtM(Math.round(v.ganancia))}</span>
+      </div>
+    </div>
+    <div class="hist-card-body">
+      <div class="hc-stat"><div class="hc-label">Chofer</div><div class="hc-val">${v.choferNombre || '—'}</div></div>
+      <div class="hc-stat"><div class="hc-label">Facturado</div><div class="hc-val">${fmtM(v.totalFacturado || v.facturado)}</div></div>
+      <div class="hc-stat"><div class="hc-label">Costo total</div><div class="hc-val">${fmtM(v.costoViaje)}</div></div>
+      <div class="hc-stat"><div class="hc-label">Ganancia</div><div class="hc-val ${isPos ? 'green' : 'red'}">${fmtM(v.ganancia)}</div></div>
+      <div class="hc-stat"><div class="hc-label">Margen</div><div class="hc-val ${isPos ? 'green' : 'red'}">${v.margen.toFixed(1)}%</div></div>
+      <div class="hc-stat"><div class="hc-label">Km totales</div><div class="hc-val">${(v.totalKm || v.vkm).toLocaleString('es-AR')}</div></div>
+      ${v.consumoReal !== null ? `<div class="hc-stat"><div class="hc-label">Consumo real</div><div class="hc-val">${v.consumoReal.toFixed(1)} L/100km</div></div>` : ''}
+      ${v.choferPago > 0 ? `<div class="hc-stat"><div class="hc-label">Pago chofer</div><div class="hc-val">${fmtM(v.choferPago)}</div></div>` : ''}
+    </div>
+  </div>`;
+}
+
+function groupSummaryHTML(viajes) {
+  const totalFact = viajes.reduce((s, v) => s + (v.totalFacturado || v.facturado), 0);
+  const totalGan  = viajes.reduce((s, v) => s + v.ganancia, 0);
+  const totalKm   = viajes.reduce((s, v) => s + (v.totalKm || v.vkm), 0);
+  const isPos     = totalGan >= 0;
+  return `<div class="hist-group-summary">
+    <span>${viajes.length} viaje${viajes.length !== 1 ? 's' : ''}</span>
+    <span>· ${totalKm.toLocaleString('es-AR')} km</span>
+    <span>· ${fmtM(totalFact)} facturado</span>
+    <span class="${isPos ? 'hgs-pos' : 'hgs-neg'}">· ${isPos ? '+' : ''}${fmtM(totalGan)} ganancia</span>
+  </div>`;
 }
 
 // ── RENDER HISTORIAL ──────────────────────────────────
@@ -281,36 +365,34 @@ function renderHistorial() {
   empty.style.display = 'none';
   sumEl.style.display = 'grid';
 
-  list.innerHTML = viajesGuardados.map((v, i) => {
-    const isPos = v.ganancia >= 0;
-    const n = viajesGuardados.length - i;
-    return `
-    <div class="hist-card">
-      <div class="hist-card-head">
-        <div class="hist-card-left">
-          <span class="hist-num">#${n}</span>
-          <span class="hist-desc">${v.desc}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="hist-date">${v.fecha}</span>
-          <span class="hist-badge ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${fmtM(Math.round(v.ganancia))}</span>
-        </div>
+  // Agrupar según vista
+  const groups = new Map();
+  [...viajesGuardados].reverse().forEach((v, i) => {
+    const key   = histVista === 'mes' ? v.mesKey || 'Sin fecha' : (v.choferNombre || 'Sin asignar');
+    const label = histVista === 'mes' ? (v.mesLabel || 'Sin fecha') : (v.choferNombre || 'Sin asignar');
+    if (!groups.has(key)) groups.set(key, { label, viajes: [] });
+    groups.get(key).viajes.push({ ...v, _idx: i + 1 });
+  });
+
+  let html = '';
+  let globalN = viajesGuardados.length;
+  groups.forEach(({ label, viajes }) => {
+    html += `<div class="hist-group">
+      <div class="hist-group-head">
+        <div class="hist-group-label">${label}</div>
+        ${groupSummaryHTML(viajes)}
       </div>
-      <div class="hist-card-body">
-        <div class="hc-stat"><div class="hc-label">Facturado</div><div class="hc-val">${fmtM(v.facturado)}</div></div>
-        <div class="hc-stat"><div class="hc-label">Costo total</div><div class="hc-val">${fmtM(v.costoViaje)}</div></div>
-        <div class="hc-stat"><div class="hc-label">Ganancia</div><div class="hc-val ${isPos ? 'green' : 'red'}">${fmtM(v.ganancia)}</div></div>
-        <div class="hc-stat"><div class="hc-label">Margen</div><div class="hc-val ${isPos ? 'green' : 'red'}">${v.margen.toFixed(1)}%</div></div>
-        <div class="hc-stat"><div class="hc-label">Km</div><div class="hc-val">${v.vkm.toLocaleString('es-AR')}</div></div>
-        ${v.consumoReal !== null ? `<div class="hc-stat"><div class="hc-label">Consumo real</div><div class="hc-val">${v.consumoReal.toFixed(1)} L/100km</div></div>` : ''}
-        ${v.choferPago > 0 ? `<div class="hc-stat"><div class="hc-label">Pago chofer</div><div class="hc-val">${fmtM(v.choferPago)}</div></div>` : ''}
+      <div class="hist-group-cards">
+        ${viajes.map(v => histCardHTML(v, globalN--)).join('')}
       </div>
     </div>`;
-  }).join('');
+  });
 
-  const totalFact = viajesGuardados.reduce((s, v) => s + v.facturado, 0);
+  list.innerHTML = html;
+
+  const totalFact = viajesGuardados.reduce((s, v) => s + (v.totalFacturado || v.facturado), 0);
   const totalGan  = viajesGuardados.reduce((s, v) => s + v.ganancia, 0);
-  const totalKm   = viajesGuardados.reduce((s, v) => s + v.vkm, 0);
+  const totalKm   = viajesGuardados.reduce((s, v) => s + (v.totalKm || v.vkm), 0);
   const avgMargen = viajesGuardados.reduce((s, v) => s + v.margen, 0) / viajesGuardados.length;
   const isGanPos  = totalGan >= 0;
 
