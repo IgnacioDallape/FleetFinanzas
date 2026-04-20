@@ -137,12 +137,33 @@
             </div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Próximos vencimientos</span></div>
-          <div class="table-wrap"><table>
-            <thead><tr><th>Concepto</th><th>Vence</th><th>Monto</th><th>Urgencia</th></tr></thead>
-            <tbody id="dash-upcoming"></tbody>
-          </table></div>
+        <!-- COBROS SIMULATOR -->
+        <div class="card cs-card">
+          <div class="card-header">
+            <span class="card-title">Cobros</span>
+            <span id="cs-total-header" style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--accent)"></span>
+            <button class="btn btn-sm" onclick="cobrosSimReset()">↺ Reiniciar</button>
+          </div>
+          <!-- A COBRAR drop zone -->
+          <div class="cs-zone cs-acobrar-zone" id="cs-acobrar"
+            ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDropTo('acobrar',event)">
+            <div id="cs-acobrar-empty" class="cs-empty-hint">
+              <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--text3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-right:6px"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              Arrastrá cobros acá para simularlos
+            </div>
+            <div id="cs-acobrar-list"></div>
+          </div>
+          <!-- divider -->
+          <div class="cs-divider">
+            <span class="cs-div-tag">A cobrar</span>
+            <span class="cs-div-total" id="cs-total">$ 0</span>
+          </div>
+          <!-- PENDIENTES -->
+          <div class="cs-zone cs-pending-zone" id="cs-pendientes"
+            ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDropTo('pendientes',event)">
+            <div id="cs-pendientes-empty" class="cs-empty-hint" style="display:none;">Sin cobros pendientes</div>
+            <div id="cs-pendientes-list"></div>
+          </div>
         </div>
       </div>
 
