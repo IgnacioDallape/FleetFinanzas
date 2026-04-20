@@ -44,7 +44,7 @@
     </div>
     <div class="nav-section">
       <div class="nav-label">Apps</div>
-      <a class="nav-item" href="fleetcost/" target="_blank" style="text-decoration:none;color:inherit;"><span class="nav-icon">🚛</span>FleetCost</a>
+      <div class="nav-item" onclick="navigate('fleetcost',this)"><span class="nav-icon">🚛</span>FleetCost</div>
     </div>
   </nav>
 
@@ -648,6 +648,11 @@
           <button class="btn btn-danger" onclick="resetData()">⚠ Borrar todo</button>
         </div>
       </div>
+    </div>
+
+    <!-- FLEETCOST -->
+    <div class="page" id="page-fleetcost">
+      <iframe src="fleetcost/" class="fleetcost-frame"></iframe>
     </div>
 
   </main>
