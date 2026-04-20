@@ -262,19 +262,7 @@ function renderDashboard(){
   renderRecomendacion();
   renderCheqSimulator();
 
-  // PRÓXIMOS VENCIMIENTOS
-  const ups=data.pagos.filter(p=>!p.pagado).sort((a,b)=>{
-    const dd=diffDays(a.fecha)-diffDays(b.fecha);
-    if(dd!==0) return dd;
-    return PRIO_ORDER[a.prio||'normal']-PRIO_ORDER[b.prio||'normal'];
-  }).slice(0,6);
-  document.getElementById('dash-upcoming').innerHTML=ups.length?ups.map(p=>{
-    const d=diffDays(p.fecha);
-    const badge=d<0?'<span class="badge badge-red">Vencido</span>':d===0?'<span class="badge badge-red">Hoy</span>':d===1?'<span class="badge badge-amber">Mañana</span>':d<=3?`<span class="badge badge-amber">${d}d</span>`:`<span class="badge badge-gray">${d}d</span>`;
-    const prioBadge=`<span class="badge ${PRIO_BADGE[p.prio||'normal']}" style="font-size:9px">${PRIO_LABEL[p.prio||'normal']}</span>`;
-    return `<tr><td>${p.nombre}<br>${prioBadge}</td><td>${fmtDate(p.fecha)}</td><td class="mono">${fmt(p.monto)}</td><td>${badge}</td></tr>`;
-  }).join(''):`<tr><td colspan="4" class="empty">Sin pagos pendientes</td></tr>`;
-
+  renderCobrosSim();
   updateNavBadge();
   renderCharts(flujo);
   // Update CF total
@@ -1000,6 +988,76 @@ function descRetencion(tipo) {
 }
 
 let cheqSeleccionados = new Set(); // cobro ids seleccionados
+
+// ── COBROS SIMULATOR (drag & drop) ───────────────────
+let cobrosSimSelected = new Set();
+let csDragId = null;
+
+function renderCobrosSim() {
+  const all = data.cobros.filter(c => !c.cobrado)
+    .sort((a,b) => fechaAcreditacion(a).localeCompare(fechaAcreditacion(b)));
+  // Remove ids that no longer exist
+  cobrosSimSelected = new Set([...cobrosSimSelected].filter(id => all.find(c => c.id === id)));
+
+  const acobrar  = all.filter(c =>  cobrosSimSelected.has(c.id));
+  const pending  = all.filter(c => !cobrosSimSelected.has(c.id));
+  const total    = acobrar.reduce((s,c) => s + c.monto, 0);
+
+  const totEl = document.getElementById('cs-total');
+  const totH  = document.getElementById('cs-total-header');
+  if (totEl) totEl.textContent = fmt(total);
+  if (totH)  totH.textContent  = total > 0 ? fmt(total) : '';
+
+  const acEl    = document.getElementById('cs-acobrar-list');
+  const acEmpty = document.getElementById('cs-acobrar-empty');
+  if (acEl)    acEl.innerHTML    = acobrar.map(c => csChipHTML(c, true)).join('');
+  if (acEmpty) acEmpty.style.display = acobrar.length ? 'none' : 'flex';
+
+  const pEl    = document.getElementById('cs-pendientes-list');
+  const pEmpty = document.getElementById('cs-pendientes-empty');
+  if (pEl)    pEl.innerHTML    = pending.map(c => csChipHTML(c, false)).join('');
+  if (pEmpty) pEmpty.style.display = pending.length ? 'none' : 'flex';
+}
+
+function csChipHTML(c, inAcobrar) {
+  const d = diffDays(fechaAcreditacion(c));
+  const urgCls = d < 0 ? 'badge-green' : d <= 2 ? 'badge-amber' : 'badge-gray';
+  return `<div class="cs-chip${inAcobrar?' cs-chip-active':''}" draggable="true"
+    ondragstart="csDragStart(${c.id},event)"
+    onclick="csToggle(${c.id})">
+    <span class="cs-chip-name">${c.nombre}</span>
+    <span class="badge ${urgCls}" style="font-size:9px;flex-shrink:0">${fmtDate(fechaAcreditacion(c))}</span>
+    <span class="cs-chip-monto">${fmt(c.monto)}</span>
+  </div>`;
+}
+
+function csDragStart(id, event) {
+  csDragId = id;
+  event.dataTransfer.effectAllowed = 'move';
+}
+function csDragOver(event) {
+  event.preventDefault();
+  event.currentTarget.classList.add('cs-drag-over');
+}
+function csDragLeave(event) {
+  event.currentTarget.classList.remove('cs-drag-over');
+}
+function csDropTo(zone, event) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('cs-drag-over');
+  if (csDragId === null) return;
+  zone === 'acobrar' ? cobrosSimSelected.add(csDragId) : cobrosSimSelected.delete(csDragId);
+  csDragId = null;
+  renderCobrosSim();
+}
+function csToggle(id) {
+  cobrosSimSelected.has(id) ? cobrosSimSelected.delete(id) : cobrosSimSelected.add(id);
+  renderCobrosSim();
+}
+function cobrosSimReset() {
+  cobrosSimSelected = new Set();
+  renderCobrosSim();
+}
 
 function renderCheqSimulator() {
   const cobros = data.cobros.filter(c => !c.cobrado && c.tipo === 'cheque');
