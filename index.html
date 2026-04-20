@@ -54,6 +54,15 @@
     <div class="logo"><div class="logo-dot"></div>flujo</div>
     <div class="topbar-right">
       <div class="saldo-pill"><span class="saldo-label">Disponible</span><span id="top-saldo">$0</span></div>
+      <div class="notif-wrap" id="notif-wrap">
+        <button class="notif-bell" id="notif-bell" onclick="toggleNotifPanel()" title="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+        </button>
+        <div class="notif-panel" id="notif-panel">
+          <div class="notif-panel-header">Notificaciones</div>
+        </div>
+      </div>
       <button class="btn btn-sm" onclick="exportJSON()">↓ Exportar</button>
       <button class="btn btn-sm" onclick="doLogout()" title="Cerrar sesión" style="opacity:.6;">⎋ Salir</button>
     </div>
@@ -97,7 +106,7 @@
         <div class="page-sub" id="dash-date"></div>
       </div>
       <div class="metrics" id="dash-metrics"></div>
-      <div class="alerts" id="dash-alerts"></div>
+      <div class="alerts" id="dash-alerts" style="display:none"></div>
 
       <div class="grid2">
         <div style="display:flex;flex-direction:column;gap:20px">
