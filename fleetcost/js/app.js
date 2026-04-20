@@ -529,7 +529,14 @@ function limpiarHistorial() {
 }
 
 // ── UNITS ─────────────────────────────────────────────
-const FC_UNITS_KEY = 'fleetcost_unidades';
+const _fcAuthId = (() => {
+  try {
+    var s = localStorage.getItem('fleet_session') || sessionStorage.getItem('fleet_session');
+    if (s) { var d = JSON.parse(s); return d.userId || 'nacho'; }
+  } catch(e) {}
+  return 'nacho';
+})();
+const FC_UNITS_KEY = _fcAuthId === 'nacho' ? 'fleetcost_unidades' : 'fleetcost_unidades_' + _fcAuthId;
 
 function loadUnitsFC() {
   try { return JSON.parse(localStorage.getItem(FC_UNITS_KEY) || '[]'); }

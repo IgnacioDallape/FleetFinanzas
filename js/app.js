@@ -1,23 +1,24 @@
 // ── AUTH ──────────────────────────────────────────────
-const AUTH_KEY  = 'fleet_session';
-const AUTH_USER = 'nachodallape2@gmail.com';
-const AUTH_PASS = '101010';
+const AUTH_KEY = 'fleet_session';
+const AUTH_USERS = [
+  { user: 'nachodallape2@gmail.com', pass: '101010',   id: 'nacho'    },
+  { user: 'ariel1234',               pass: 'ariel1234', id: 'ariel1234' },
+];
 
 function doLogin(e) {
   e.preventDefault();
-  const user     = document.getElementById('l-user').value.trim();
+  const user     = document.getElementById('l-user').value.trim().toLowerCase();
   const pass     = document.getElementById('l-pass').value;
   const remember = document.getElementById('l-remember').checked;
   const errEl    = document.getElementById('login-error');
-  if (user === AUTH_USER && pass === AUTH_PASS) {
+  const match    = AUTH_USERS.find(u => u.user === user && u.pass === pass);
+  if (match) {
     errEl.style.display = 'none';
-    const payload = JSON.stringify({ expiry: remember ? Date.now() + 30 * 864e5 : null });
+    const payload = JSON.stringify({ expiry: remember ? Date.now() + 30 * 864e5 : null, userId: match.id });
     if (remember) localStorage.setItem(AUTH_KEY, payload);
     else          sessionStorage.setItem(AUTH_KEY, payload);
-    document.documentElement.classList.add('is-authed');
-    const ov = document.getElementById('login-overlay');
-    ov.style.animation = 'loginFadeOut .3s ease forwards';
-    setTimeout(() => ov.style.display = 'none', 300);
+    // Reload so app re-initialises with the correct storage keys for this user
+    window.location.reload();
   } else {
     errEl.style.display = 'block';
     document.getElementById('l-pass').value = '';
@@ -32,17 +33,16 @@ function doLogin(e) {
 function doLogout() {
   localStorage.removeItem(AUTH_KEY);
   sessionStorage.removeItem(AUTH_KEY);
-  document.documentElement.classList.remove('is-authed');
-  const ov = document.getElementById('login-overlay');
-  ov.style.display = '';
-  ov.style.animation = '';
-  document.getElementById('l-pass').value = '';
-  document.getElementById('login-error').style.display = 'none';
+  window.location.reload();
 }
 
 // ── APP ───────────────────────────────────────────────
 const TODAY = new Date().toISOString().slice(0, 10);
-const UNITS_KEY = 'fleetcost_unidades';
+
+// Storage keys — scoped per user so each account has isolated data
+const _authId    = window._authUserId || 'nacho';
+const STORAGE_KEY = _authId === 'nacho' ? 'flujo_v7' : 'flujo_v7_' + _authId;
+const UNITS_KEY   = _authId === 'nacho' ? 'fleetcost_unidades' : 'fleetcost_unidades_' + _authId;
 const fmt = v => '$\u00a0' + Math.round(v).toLocaleString('es-AR');
 const fmtDate = d => { if(!d) return ''; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); };
 const diffDays = d => Math.ceil((new Date(d)-new Date(TODAY))/86400000);
@@ -142,8 +142,20 @@ function normalizeData(parsed){
   return parsed;
 }
 
-const STORAGE_KEY = 'flujo_v7';
-let data=(() => { try{const d=localStorage.getItem(STORAGE_KEY);const parsed=normalizeData(d?JSON.parse(d):defaultData());return parsed;}catch(e){return defaultData();} })();
+function emptyData(){
+  return {
+    disponible:0, cobros:[], pagos:[], costosFijos:[], costos:[],
+    ypf:{ precioPorLitro:0, deuda:0, choferes:[], cargas:[] }
+  };
+}
+
+let data=(() => {
+  try{
+    const d=localStorage.getItem(STORAGE_KEY);
+    if(d) return normalizeData(JSON.parse(d));
+    return _authId==='nacho' ? defaultData() : emptyData();
+  }catch(e){ return _authId==='nacho' ? defaultData() : emptyData(); }
+})();
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));updateTopbar();}
 function updateTopbar(){document.getElementById('top-saldo').textContent=fmt(data.disponible);}
 
