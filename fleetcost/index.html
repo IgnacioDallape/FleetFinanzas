@@ -8,8 +8,8 @@
 <link rel="stylesheet" href="css/styles.css">
 <script>
 (function(){
-  // If loaded in iframe from Flujo, skip check (parent already authenticated)
-  if(window.self!==window.top)return;
+  // In iframe: parent (Flujo) already authenticated — mark authed directly
+  if(window.self!==window.top){document.documentElement.classList.add('is-authed');return;}
   try{
     var s=localStorage.getItem('fleet_session')||sessionStorage.getItem('fleet_session');
     if(s){var d=JSON.parse(s);if(!d.expiry||Date.now()<d.expiry){document.documentElement.classList.add('is-authed');return;}}
