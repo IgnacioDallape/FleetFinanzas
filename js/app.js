@@ -2,7 +2,7 @@
 const AUTH_KEY = 'fleet_session';
 const AUTH_USERS = [
   { user: 'nachodallape2@gmail.com', pass: '101010',   id: 'nacho'    },
-  { user: 'ariel1234',               pass: 'ariel1234', id: 'ariel1234' },
+  { user: 'arieltransporte@gmail.com', pass: 'ariel1234', id: 'ariel1234' },
 ];
 
 function doLogin(e) {
