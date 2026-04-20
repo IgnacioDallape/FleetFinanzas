@@ -82,6 +82,16 @@ function calcular() {
       '<div class="t-row"><span class="t-row-label" style="color:var(--muted);"><span class="t-pip" style="background:var(--muted);"></span>Completá todos los datos para ver el total</span></div>';
   }
 
+  // Update cost bar
+  const cbInd  = document.getElementById('cb-ind');
+  const cbChof = document.getElementById('cb-chof');
+  const cbComb = document.getElementById('cb-comb');
+  const cbTot  = document.getElementById('cb-total');
+  if (cbInd)  cbInd.textContent  = indKm    > 0 ? '$ ' + fmtN(indKm)    : '—';
+  if (cbChof) cbChof.textContent = choferKm > 0 ? '$ ' + fmtN(choferKm) : '—';
+  if (cbComb) cbComb.textContent = combustKm > 0 ? '$ ' + fmtN(combustKm) : '—';
+  if (cbTot)  cbTot.textContent  = totalKm  > 0 ? '$ ' + fmtN(totalKm)  : '—';
+
   calcularViaje();
 }
 
@@ -526,15 +536,35 @@ function loadUnitsFC() {
   catch(e) { return []; }
 }
 
+let _costosBaseOpen = false;
+
+function toggleCostosBase() {
+  _costosBaseOpen = !_costosBaseOpen;
+  const panel = document.getElementById('costos-base-panel');
+  const chev  = document.getElementById('cb-chev');
+  const label = document.getElementById('cb-config-label');
+  if (panel) panel.style.display = _costosBaseOpen ? 'block' : 'none';
+  if (chev)  chev.classList.toggle('open', _costosBaseOpen);
+  if (label) label.textContent = _costosBaseOpen ? 'Ocultar' : 'Costos base';
+}
+
 function populateUnitSelector() {
   const units = loadUnitsFC();
-  const wrap = document.getElementById('unit-selector-wrap');
-  const sel = document.getElementById('unit-select');
+  const wrap  = document.getElementById('unit-selector-wrap');
+  const sel   = document.getElementById('unit-select');
+  const panel = document.getElementById('costos-base-panel');
   if (!wrap || !sel) return;
-  if (units.length === 0) { wrap.style.display = 'none'; return; }
+  if (units.length === 0) {
+    wrap.style.display = 'none';
+    // No units: show costos base by default so user can fill them in
+    if (panel) { panel.style.display = 'block'; _costosBaseOpen = true; }
+    return;
+  }
   wrap.style.display = 'flex';
   sel.innerHTML = '<option value="">— seleccioná un camión —</option>' +
     units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+  // Units exist: costos base collapsed by default
+  if (panel) { panel.style.display = 'none'; _costosBaseOpen = false; }
 }
 
 function selectUnit(id) {

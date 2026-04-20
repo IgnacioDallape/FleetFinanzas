@@ -43,18 +43,54 @@
 
   <!-- ══ PANEL CALCULADORA ══ -->
   <div id="panel-calculadora" class="tab-panel">
-    <div class="main-grid">
+
+    <!-- UNIT SELECTOR -->
+    <div class="unit-selector-wrap fade-in" id="unit-selector-wrap" style="display:none;">
+      <div class="us-icon">
+        <svg viewBox="0 0 24 24"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div class="us-content">
+        <div class="us-label">Unidad activa</div>
+        <select class="us-select" id="unit-select" onchange="selectUnit(this.value)">
+          <option value="">— seleccioná un camión —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- COST SUMMARY BAR -->
+    <div class="cost-bar fade-in">
+      <div class="cb-item">
+        <span class="cb-label">Indirecto / km</span>
+        <span class="cb-val" id="cb-ind">—</span>
+      </div>
+      <div class="cb-divider"></div>
+      <div class="cb-item">
+        <span class="cb-label">Chofer / km</span>
+        <span class="cb-val cb-chof" id="cb-chof">—</span>
+      </div>
+      <div class="cb-divider"></div>
+      <div class="cb-item">
+        <span class="cb-label">Combustible / km</span>
+        <span class="cb-val cb-comb" id="cb-comb">—</span>
+      </div>
+      <div class="cb-divider"></div>
+      <div class="cb-item cb-total-item">
+        <span class="cb-label">Total / km</span>
+        <span class="cb-val cb-total" id="cb-total">—</span>
+      </div>
+      <button class="cb-config-btn" onclick="toggleCostosBase()" id="cb-config-btn">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span id="cb-config-label">Costos base</span>
+        <svg class="cb-chev" id="cb-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+
+    <!-- COLLAPSIBLE COSTOS BASE -->
+    <div id="costos-base-panel" class="costos-base-panel" style="display:none;">
+      <div class="main-grid">
 
       <!-- INPUTS -->
       <div>
-
-        <!-- UNIT SELECTOR -->
-        <div class="unit-selector-wrap fade-in" id="unit-selector-wrap" style="display:none;">
-          <div class="us-label">Unidad</div>
-          <select class="us-select" id="unit-select" onchange="selectUnit(this.value)">
-            <option value="">— seleccioná un camión —</option>
-          </select>
-        </div>
 
         <div class="section-head fade-in">
           <div class="section-icon" style="background:var(--blue-dim);border:1px solid #3B7DD830;">
@@ -255,7 +291,8 @@
         </div>
 
       </div>
-    </div>
+      </div><!-- end main-grid -->
+    </div><!-- end costos-base-panel -->
 
     <!-- SIMULADOR DE VIAJE -->
     <div class="trip-section fade-in">
