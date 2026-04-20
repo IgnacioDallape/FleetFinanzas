@@ -1277,6 +1277,8 @@ function renderYPF(){
   if(typeof data.ypf.deuda !== 'number') data.ypf.deuda = 0;
   const precioEl = document.getElementById('ypf-precio');
   if(precioEl && data.ypf.precioPorLitro) precioEl.value = data.ypf.precioPorLitro;
+  const deudaEl = document.getElementById('ypf-deuda');
+  if(deudaEl) deudaEl.value = data.ypf.deuda ?? 0;
   document.getElementById('ypf-fecha').value = TODAY;
   ypfRenderChoferes();
   ypfRender();
@@ -1422,6 +1424,15 @@ function ypfGuardarPrecio(){
   data.ypf.precioPorLitro = ypfGetPrecio();
   save();
   const el = document.getElementById('ypf-precio-saved');
+  if(el){ el.textContent = '✓ Guardado'; setTimeout(()=>el.textContent='',2000); }
+  ypfRender();
+}
+
+function ypfGuardarDeuda(){
+  if(!data.ypf) data.ypf = {precioPorLitro:2142, cargas:[], choferes:[]};
+  data.ypf.deuda = parseFloat(document.getElementById('ypf-deuda').value) || 0;
+  save();
+  const el = document.getElementById('ypf-deuda-saved');
   if(el){ el.textContent = '✓ Guardado'; setTimeout(()=>el.textContent='',2000); }
   ypfRender();
 }
