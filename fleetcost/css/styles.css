@@ -358,6 +358,29 @@ body::before{
 .hs-value{font-size:17px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;}
 .hs-value.green{color:var(--green);}
 
+/* RETORNO TOGGLE */
+.retorno-toggle{display:flex;align-items:center;gap:12px;padding:12px 0;cursor:pointer;user-select:none;}
+.retorno-toggle:hover .rt-title{color:var(--accent);}
+.rt-check{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border3);background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.rt-title{font-size:13px;font-weight:600;color:var(--text);transition:color .15s;}
+.rt-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:1px;}
+
+/* HISTORIAL FILTERS */
+.hist-filters{display:flex;gap:6px;margin-bottom:1.5rem;}
+.hf-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;border:1px solid var(--border2);border-radius:var(--r-sm);background:var(--bg2);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;}
+.hf-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.hf-btn:hover{color:var(--text);border-color:var(--border3);}
+.hf-btn.active{color:var(--accent);border-color:var(--accent-dim2);background:var(--accent-dim);}
+
+/* HISTORIAL GROUPS */
+.hist-group{margin-bottom:2rem;}
+.hist-group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.hist-group-label{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.01em;text-transform:capitalize;}
+.hist-group-summary{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.hgs-pos{color:var(--green);}
+.hgs-neg{color:#E05A2B;}
+.hist-group-cards{display:flex;flex-direction:column;gap:10px;}
+
 /* FOOTER */
 .footer{
   margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border);
