@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fleetcost",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "3456", "fleetcost"],
+      "port": 3456
+    }
+  ]
+}

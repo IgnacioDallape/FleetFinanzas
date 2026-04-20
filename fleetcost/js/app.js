@@ -518,9 +518,46 @@ function limpiarHistorial() {
   renderHistorial();
 }
 
+// ── UNITS ─────────────────────────────────────────────
+const FC_UNITS_KEY = 'fleetcost_unidades';
+
+function loadUnitsFC() {
+  try { return JSON.parse(localStorage.getItem(FC_UNITS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function populateUnitSelector() {
+  const units = loadUnitsFC();
+  const wrap = document.getElementById('unit-selector-wrap');
+  const sel = document.getElementById('unit-select');
+  if (!wrap || !sel) return;
+  if (units.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  sel.innerHTML = '<option value="">— seleccioná un camión —</option>' +
+    units.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+}
+
+function selectUnit(id) {
+  if (!id) return;
+  const units = loadUnitsFC();
+  const u = units.find(x => String(x.id) === String(id));
+  if (!u) return;
+  if (u.kmBase)      document.getElementById('km').value           = u.kmBase;
+  if (u.seguro)      document.getElementById('seguro').value       = u.seguro;
+  if (u.patente)     document.getElementById('patente').value      = u.patente;
+  if (u.manto)       document.getElementById('manto').value        = u.manto;
+  if (u.aceite)      document.getElementById('aceite').value       = u.aceite;
+  if (u.cubiertas)   document.getElementById('cubiertas').value    = u.cubiertas;
+  if (u.choferKm)    document.getElementById('chofer-km').value    = u.choferKm;
+  if (u.precioLitro) document.getElementById('precio-litro').value = u.precioLitro;
+  if (u.rendimiento) document.getElementById('rendimiento').value  = u.rendimiento;
+  calcular();
+}
+
 // ── INIT ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('footer-date').textContent =
     new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+  populateUnitSelector();
   calcular();
 });

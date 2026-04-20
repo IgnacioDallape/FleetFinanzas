@@ -48,6 +48,14 @@
       <!-- INPUTS -->
       <div>
 
+        <!-- UNIT SELECTOR -->
+        <div class="unit-selector-wrap fade-in" id="unit-selector-wrap" style="display:none;">
+          <div class="us-label">Unidad</div>
+          <select class="us-select" id="unit-select" onchange="selectUnit(this.value)">
+            <option value="">— seleccioná un camión —</option>
+          </select>
+        </div>
+
         <div class="section-head fade-in">
           <div class="section-icon" style="background:var(--blue-dim);border:1px solid #3B7DD830;">
             <svg viewBox="0 0 24 24" style="stroke:var(--blue);"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>

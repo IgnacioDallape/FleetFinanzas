@@ -1,4 +1,5 @@
 const TODAY = new Date().toISOString().slice(0, 10);
+const UNITS_KEY = 'fleetcost_unidades';
 const fmt = v => '$\u00a0' + Math.round(v).toLocaleString('es-AR');
 const fmtDate = d => { if(!d) return ''; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); };
 const diffDays = d => Math.ceil((new Date(d)-new Date(TODAY))/86400000);
@@ -144,6 +145,7 @@ function navigate(page,el){
   if(page==='ypf') renderYPF();
   if(page==='costos-fijos') renderCF();
   if(page==='costos') renderCostos();
+  if(page==='unidades') renderUnidades();
 }
 function toggleForm(id){document.getElementById(id).classList.toggle('open');}
 
@@ -1547,6 +1549,119 @@ function cvGetCostosDelDia(fecha) {
 function saveSaldo(){const v=parseFloat(document.getElementById('conf-saldo').value);if(isNaN(v))return alert('Número inválido');data.disponible=v;save();alert('Saldo actualizado a '+fmt(v));}
 function exportJSON(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-'+TODAY+'.json';a.click();}
 function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem(STORAGE_KEY);location.reload();}
+
+// ── UNIDADES ──────────────────────────────────────────
+function loadUnits() {
+  try { return JSON.parse(localStorage.getItem(UNITS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveUnits(units) {
+  localStorage.setItem(UNITS_KEY, JSON.stringify(units));
+}
+
+function renderUnidades() {
+  const units = loadUnits();
+  const container = document.getElementById('unidades-list');
+  if (!container) return;
+  if (units.length === 0) {
+    container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text3);font-size:13px;">No hay unidades. Agregá tu primer camión.</div>`;
+    return;
+  }
+  container.innerHTML = units.map(u => `
+    <div class="unit-card">
+      <div class="unit-card-head">
+        <div>
+          <div class="unit-name">${u.nombre}</div>
+          <div class="unit-meta">
+            ${u.kmBase ? `<span>${u.kmBase.toLocaleString('es-AR')} km/mes</span>` : ''}
+            ${u.rendimiento ? `<span>· ${u.rendimiento} km/L</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="unit-btn-edit" onclick="openEditUnit(${u.id})">Editar</button>
+          <button class="unit-btn-del" onclick="deleteUnit(${u.id})">✕</button>
+        </div>
+      </div>
+      <div class="unit-costs">
+        <div class="uc-row"><span>Seguro</span><span>$ ${(u.seguro||0).toLocaleString('es-AR')}</span></div>
+        <div class="uc-row"><span>Patente</span><span>$ ${(u.patente||0).toLocaleString('es-AR')}</span></div>
+        <div class="uc-row"><span>Mantenimiento</span><span>$ ${(u.manto||0).toLocaleString('es-AR')}</span></div>
+        <div class="uc-row"><span>Aceite</span><span>$ ${(u.aceite||0).toLocaleString('es-AR')}</span></div>
+        <div class="uc-row"><span>Cubiertas</span><span>$ ${(u.cubiertas||0).toLocaleString('es-AR')}</span></div>
+        <div class="uc-row"><span>Chofer / km</span><span>$ ${(u.choferKm||0).toLocaleString('es-AR')}</span></div>
+        <div class="uc-row"><span>Precio litro</span><span>$ ${(u.precioLitro||0).toLocaleString('es-AR')}</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function openAddUnit() {
+  document.getElementById('unit-form-title').textContent = 'Nueva unidad';
+  document.getElementById('unit-edit-id').value = '';
+  ['unit-f-nombre','unit-f-seguro','unit-f-patente','unit-f-manto','unit-f-aceite',
+   'unit-f-cubiertas','unit-f-km','unit-f-chofer','unit-f-litro','unit-f-rend'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('unit-form-wrap').style.display = 'block';
+  document.getElementById('unit-f-nombre').focus();
+}
+
+function openEditUnit(id) {
+  const u = loadUnits().find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('unit-form-title').textContent = 'Editar unidad';
+  document.getElementById('unit-edit-id').value = id;
+  document.getElementById('unit-f-nombre').value = u.nombre || '';
+  document.getElementById('unit-f-seguro').value = u.seguro || '';
+  document.getElementById('unit-f-patente').value = u.patente || '';
+  document.getElementById('unit-f-manto').value = u.manto || '';
+  document.getElementById('unit-f-aceite').value = u.aceite || '';
+  document.getElementById('unit-f-cubiertas').value = u.cubiertas || '';
+  document.getElementById('unit-f-km').value = u.kmBase || '';
+  document.getElementById('unit-f-chofer').value = u.choferKm || '';
+  document.getElementById('unit-f-litro').value = u.precioLitro || '';
+  document.getElementById('unit-f-rend').value = u.rendimiento || '';
+  document.getElementById('unit-form-wrap').style.display = 'block';
+  document.getElementById('unit-f-nombre').focus();
+}
+
+function saveUnit() {
+  const nombre = document.getElementById('unit-f-nombre').value.trim();
+  if (!nombre) { alert('Ingresá el nombre de la unidad'); return; }
+  const editId = parseInt(document.getElementById('unit-edit-id').value);
+  const unit = {
+    id: editId || Date.now(),
+    nombre,
+    seguro:      parseFloat(document.getElementById('unit-f-seguro').value) || 0,
+    patente:     parseFloat(document.getElementById('unit-f-patente').value) || 0,
+    manto:       parseFloat(document.getElementById('unit-f-manto').value) || 0,
+    aceite:      parseFloat(document.getElementById('unit-f-aceite').value) || 0,
+    cubiertas:   parseFloat(document.getElementById('unit-f-cubiertas').value) || 0,
+    kmBase:      parseFloat(document.getElementById('unit-f-km').value) || 0,
+    choferKm:    parseFloat(document.getElementById('unit-f-chofer').value) || 0,
+    precioLitro: parseFloat(document.getElementById('unit-f-litro').value) || 0,
+    rendimiento: parseFloat(document.getElementById('unit-f-rend').value) || 0,
+  };
+  let units = loadUnits();
+  if (editId) {
+    units = units.map(u => u.id === editId ? unit : u);
+  } else {
+    units.push(unit);
+  }
+  saveUnits(units);
+  document.getElementById('unit-form-wrap').style.display = 'none';
+  renderUnidades();
+}
+
+function cancelUnit() {
+  document.getElementById('unit-form-wrap').style.display = 'none';
+}
+
+function deleteUnit(id) {
+  if (!confirm('¿Eliminar esta unidad?')) return;
+  saveUnits(loadUnits().filter(u => u.id !== id));
+  renderUnidades();
+}
 
 // INIT
 updateTopbar();
