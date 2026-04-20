@@ -373,13 +373,26 @@ body::before{
 .hf-btn.active{color:var(--accent);border-color:var(--accent-dim2);background:var(--accent-dim);}
 
 /* HISTORIAL GROUPS */
-.hist-group{margin-bottom:2rem;}
-.hist-group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-.hist-group-label{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-0.01em;text-transform:capitalize;}
-.hist-group-summary{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.hist-group{margin-bottom:1.5rem;}
+.hist-group-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.hgh-toggle{cursor:pointer;user-select:none;}
+.hgh-toggle:hover .hist-group-label{color:var(--accent);}
+.hist-group-label{font-size:13px;font-weight:700;color:var(--text);letter-spacing:-0.01em;text-transform:capitalize;}
+.hist-group-summary{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
 .hgs-pos{color:var(--green);}
 .hgs-neg{color:#E05A2B;}
-.hist-group-cards{display:flex;flex-direction:column;gap:10px;}
+.hg-chevron{color:var(--muted);display:flex;transition:transform .2s ease;}
+.hg-chevron svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* COMPACT TRIP CARD */
+.hist-card-compact{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;}
+.hcc-main{flex:1;min-width:0;display:flex;align-items:center;gap:7px;overflow:hidden;}
+.hcc-desc{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;}
+.hcc-ret{color:var(--accent);font-size:9px;font-family:'JetBrains Mono',monospace;margin-left:2px;}
+.hcc-tag{font-size:9px;color:var(--muted2);font-family:'JetBrains Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;white-space:nowrap;flex-shrink:0;}
+.hcc-meta{display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);white-space:nowrap;flex-shrink:0;}
+.hcc-fact{color:var(--text);font-weight:500;}
+.hcc-cons{color:var(--amber);}
 
 /* FOOTER */
 .footer{

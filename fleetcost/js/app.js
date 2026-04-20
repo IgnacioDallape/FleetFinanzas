@@ -109,17 +109,17 @@ function calcularViaje() {
   const rendTeo        = parseFloat(document.getElementById('rendimiento').value) || 0;
   const retornoMonto   = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-monto').value) || 0) : 0;
   const retornoKmInput = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-km').value) || 0) : 0;
-  const retornoKm      = _hasRetorno ? (retornoKmInput > 0 ? retornoKmInput : vkm) : 0;
+  const retornoKm      = _hasRetorno ? retornoKmInput : 0;
   const totalKm        = vkm + retornoKm;
   const totalFacturado = facturado + retornoMonto;
 
   const elA = document.getElementById('trip-result-a');
   const elB = document.getElementById('trip-result-b');
 
-  if (vkm === 0) {
+  if (facturado === 0 && vkm === 0 && peajes === 0 && litros === 0 && choferPago === 0) {
     elA.innerHTML = `<div class="trip-empty">
       <svg viewBox="0 0 24 24" style="width:26px;height:26px;stroke:var(--muted);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      <div>ingresá los km del viaje<br><span style="font-size:11px;color:var(--muted2);">los costos se calculan automáticamente<br>desde las tarifas configuradas</span></div>
+      <div>completá los datos<br>del viaje</div>
     </div>`;
     elB.innerHTML = '';
     return;
@@ -256,7 +256,7 @@ function guardarViaje() {
   const rendTeo        = parseFloat(document.getElementById('rendimiento').value) || 0;
   const retornoMonto   = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-monto').value) || 0) : 0;
   const retornoKmInput = _hasRetorno ? (parseFloat(document.getElementById('v-retorno-km').value) || 0) : 0;
-  const retornoKm      = _hasRetorno ? (retornoKmInput > 0 ? retornoKmInput : vkm) : 0;
+  const retornoKm      = _hasRetorno ? retornoKmInput : 0;
   const retornoCliente = _hasRetorno ? (document.getElementById('v-retorno-cliente').value.trim() || '') : '';
   const totalKm        = vkm + retornoKm;
   const totalFacturado = facturado + retornoMonto;
@@ -307,37 +307,39 @@ function guardarViaje() {
 
 // ── HISTORIAL VISTA ───────────────────────────────────
 let histVista = 'mes';
+let _groupsOpen = {};
 
 function setHistVista(v) {
   histVista = v;
+  _groupsOpen = {};
   document.getElementById('hf-mes').classList.toggle('active', v === 'mes');
   document.getElementById('hf-chofer').classList.toggle('active', v === 'chofer');
   renderHistorial();
 }
 
-function histCardHTML(v, n) {
+function toggleGroup(idx) {
+  _groupsOpen[idx] = !_groupsOpen[idx];
+  const cards  = document.getElementById('hg-cards-' + idx);
+  const icon   = document.getElementById('hg-icon-' + idx);
+  if (cards) cards.style.display = _groupsOpen[idx] ? '' : 'none';
+  if (icon)  icon.style.transform = _groupsOpen[idx] ? 'rotate(180deg)' : '';
+}
+
+function histCardCompactHTML(v, n, showChofer) {
   const isPos = v.ganancia >= 0;
+  const km    = (v.totalKm || v.vkm).toLocaleString('es-AR');
   return `
-  <div class="hist-card">
-    <div class="hist-card-head">
-      <div class="hist-card-left">
-        <span class="hist-num">#${n}</span>
-        <span class="hist-desc">${v.desc}${v.hasRetorno ? ' <span style="font-size:9px;color:var(--accent);font-family:\'JetBrains Mono\',monospace;letter-spacing:.05em;">↩ retorno</span>' : ''}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span class="hist-date">${v.fecha}</span>
-        <span class="hist-badge ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${fmtM(Math.round(v.ganancia))}</span>
-      </div>
+  <div class="hist-card-compact">
+    <span class="hist-num">#${n}</span>
+    <div class="hcc-main">
+      <span class="hcc-desc">${v.desc}${v.hasRetorno ? '<span class="hcc-ret">↩</span>' : ''}</span>
+      ${showChofer && v.choferNombre ? `<span class="hcc-tag">${v.choferNombre}</span>` : ''}
     </div>
-    <div class="hist-card-body">
-      <div class="hc-stat"><div class="hc-label">Chofer</div><div class="hc-val">${v.choferNombre || '—'}</div></div>
-      <div class="hc-stat"><div class="hc-label">Facturado</div><div class="hc-val">${fmtM(v.totalFacturado || v.facturado)}</div></div>
-      <div class="hc-stat"><div class="hc-label">Costo total</div><div class="hc-val">${fmtM(v.costoViaje)}</div></div>
-      <div class="hc-stat"><div class="hc-label">Ganancia</div><div class="hc-val ${isPos ? 'green' : 'red'}">${fmtM(v.ganancia)}</div></div>
-      <div class="hc-stat"><div class="hc-label">Margen</div><div class="hc-val ${isPos ? 'green' : 'red'}">${v.margen.toFixed(1)}%</div></div>
-      <div class="hc-stat"><div class="hc-label">Km totales</div><div class="hc-val">${(v.totalKm || v.vkm).toLocaleString('es-AR')}</div></div>
-      ${v.consumoReal !== null ? `<div class="hc-stat"><div class="hc-label">Consumo real</div><div class="hc-val">${v.consumoReal.toFixed(1)} L/100km</div></div>` : ''}
-      ${v.choferPago > 0 ? `<div class="hc-stat"><div class="hc-label">Pago chofer</div><div class="hc-val">${fmtM(v.choferPago)}</div></div>` : ''}
+    <div class="hcc-meta">
+      <span class="hcc-km">${km} km</span>
+      <span class="hcc-fact">${fmtM(v.totalFacturado || v.facturado)}</span>
+      ${v.consumoReal !== null ? `<span class="hcc-cons">${v.consumoReal.toFixed(1)}L</span>` : ''}
+      <span class="hist-badge ${isPos ? 'pos' : 'neg'}" style="font-size:10px;padding:2px 7px;">${isPos ? '+' : ''}${fmtM(Math.round(v.ganancia))}</span>
     </div>
   </div>`;
 }
@@ -350,8 +352,8 @@ function groupSummaryHTML(viajes) {
   return `<div class="hist-group-summary">
     <span>${viajes.length} viaje${viajes.length !== 1 ? 's' : ''}</span>
     <span>· ${totalKm.toLocaleString('es-AR')} km</span>
-    <span>· ${fmtM(totalFact)} facturado</span>
-    <span class="${isPos ? 'hgs-pos' : 'hgs-neg'}">· ${isPos ? '+' : ''}${fmtM(totalGan)} ganancia</span>
+    <span>· ${fmtM(totalFact)} fact.</span>
+    <span class="${isPos ? 'hgs-pos' : 'hgs-neg'}">· ${isPos ? '+' : ''}${fmtM(totalGan)}</span>
   </div>`;
 }
 
@@ -371,27 +373,59 @@ function renderHistorial() {
   empty.style.display = 'none';
   sumEl.style.display = 'grid';
 
+  const isChofer = histVista === 'chofer';
+
   // Agrupar según vista
   const groups = new Map();
+  let gIdx = 0;
   [...viajesGuardados].reverse().forEach((v, i) => {
-    const key   = histVista === 'mes' ? v.mesKey || 'Sin fecha' : (v.choferNombre || 'Sin asignar');
-    const label = histVista === 'mes' ? (v.mesLabel || 'Sin fecha') : (v.choferNombre || 'Sin asignar');
-    if (!groups.has(key)) groups.set(key, { label, viajes: [] });
-    groups.get(key).viajes.push({ ...v, _idx: i + 1 });
+    const key   = isChofer ? (v.choferNombre || 'Sin asignar') : (v.mesKey || 'Sin fecha');
+    const label = isChofer ? (v.choferNombre || 'Sin asignar') : (v.mesLabel || 'Sin fecha');
+    if (!groups.has(key)) groups.set(key, { label, viajes: [], idx: gIdx++ });
+    groups.get(key).viajes.push({ ...v });
   });
 
   let html = '';
   let globalN = viajesGuardados.length;
-  groups.forEach(({ label, viajes }) => {
-    html += `<div class="hist-group">
-      <div class="hist-group-head">
-        <div class="hist-group-label">${label}</div>
-        ${groupSummaryHTML(viajes)}
-      </div>
-      <div class="hist-group-cards">
-        ${viajes.map(v => histCardHTML(v, globalN--)).join('')}
-      </div>
-    </div>`;
+
+  groups.forEach(({ label, viajes, idx }) => {
+    // Por mes: abierto por defecto. Por chofer: cerrado por defecto.
+    if (_groupsOpen[idx] === undefined) _groupsOpen[idx] = !isChofer;
+    const open = _groupsOpen[idx];
+
+    if (isChofer) {
+      // Acordeón colapsable por chofer
+      html += `<div class="hist-group">
+        <div class="hist-group-head hgh-toggle" onclick="toggleGroup(${idx})">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="hg-chevron" id="hg-icon-${idx}" style="transform:${open ? 'rotate(180deg)' : ''}">
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="hist-group-label">${label}</div>
+          </div>
+          ${groupSummaryHTML(viajes)}
+        </div>
+        <div id="hg-cards-${idx}" style="${open ? '' : 'display:none;'}">
+          ${viajes.map(v => histCardCompactHTML(v, globalN--, false)).join('')}
+        </div>
+      </div>`;
+    } else {
+      // Por mes: siempre visible pero colapsable
+      html += `<div class="hist-group">
+        <div class="hist-group-head hgh-toggle" onclick="toggleGroup(${idx})">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="hg-chevron" id="hg-icon-${idx}" style="transform:${open ? 'rotate(180deg)' : ''}">
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="hist-group-label">${label}</div>
+          </div>
+          ${groupSummaryHTML(viajes)}
+        </div>
+        <div id="hg-cards-${idx}" style="${open ? '' : 'display:none;'}">
+          ${viajes.map(v => histCardCompactHTML(v, globalN--, true)).join('')}
+        </div>
+      </div>`;
+    }
   });
 
   list.innerHTML = html;
