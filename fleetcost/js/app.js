@@ -4,6 +4,8 @@ function fmtN(n) { return Math.round(n).toLocaleString('es-AR'); }
 function fmtM(n) { return '$ ' + fmtN(n); }
 
 let _totalKmG = 0;
+let _combustKmG = 0;
+let _indKmG = 0;
 
 function calcular() {
   const km = parseFloat(document.getElementById('km').value) || 0;
@@ -59,6 +61,8 @@ function calcular() {
 
   const totalKm = (indKm || 0) + choferKm + combustKm;
   _totalKmG = totalKm;
+  _combustKmG = combustKm;
+  _indKmG = (indKm || 0) + choferKm;
 
   if (km > 0 && totalKm > 0) {
     document.getElementById('r-total-km').textContent = fmtN(totalKm);
@@ -100,16 +104,18 @@ function calcularViaje() {
     return;
   }
 
-  const costoViaje = _totalKmG * vkm + peajes + choferPago;
-  const ganancia   = facturado - costoViaje;
-  const margen     = facturado > 0 ? ganancia / facturado * 100 : 0;
-  const isPos      = ganancia >= 0;
+  // Usar combustible real (litros × precio) si se ingresaron litros, sino el teórico por km
+  const costoLitros    = litros > 0 ? litros * precioL : null;
+  const costoCombust   = costoLitros !== null ? costoLitros : _combustKmG * vkm;
+  const costoViaje     = _indKmG * vkm + costoCombust + peajes + choferPago;
+  const ganancia       = facturado - costoViaje;
+  const margen         = facturado > 0 ? ganancia / facturado * 100 : 0;
+  const isPos          = ganancia >= 0;
 
   const consumoReal = (litros > 0 && vkm > 0) ? (litros / vkm * 100) : null;
   const consumoTeo  = rendTeo > 0 ? (100 / rendTeo) : null;
   const diff        = (consumoReal !== null && consumoTeo !== null) ? consumoReal - consumoTeo : null;
   const isAlto      = diff !== null && diff > consumoTeo * 0.1;
-  const costoLitros = litros > 0 ? litros * precioL : null;
 
   elA.innerHTML = `
     <div class="gh-card ${isPos ? 'pos' : 'neg'}">
@@ -136,15 +142,19 @@ function calcularViaje() {
     <div class="trip-desglose">
       <div class="td-head"><span>Concepto</span><span>Monto</span></div>
       <div class="td-row">
-        <span class="td-label"><span class="td-pip" style="background:#3B7DD8;"></span>Costo operativo (km)</span>
-        <span class="td-val">${fmtM(_totalKmG * vkm)}</span>
+        <span class="td-label"><span class="td-pip" style="background:#3B7DD8;"></span>Costos indirectos + chofer (km)</span>
+        <span class="td-val">${fmtM(_indKmG * vkm)}</span>
       </div>
       <div class="td-row">
-        <span class="td-label"><span class="td-pip" style="background:#2BB89A;"></span>Chofer (real)</span>
+        <span class="td-label"><span class="td-pip" style="background:#D4820A;"></span>Combustible${costoLitros !== null ? ' (real)' : ' (teórico)'}</span>
+        <span class="td-val">${fmtM(costoCombust)}</span>
+      </div>
+      <div class="td-row">
+        <span class="td-label"><span class="td-pip" style="background:#2BB89A;"></span>Chofer (pago real)</span>
         <span class="td-val">${choferPago > 0 ? fmtM(choferPago) : '—'}</span>
       </div>
       <div class="td-row">
-        <span class="td-label"><span class="td-pip" style="background:#2BB89A;"></span>Peajes</span>
+        <span class="td-label"><span class="td-pip" style="background:#8B5CF6;"></span>Peajes</span>
         <span class="td-val">${fmtM(peajes)}</span>
       </div>
       <div class="td-total">
@@ -227,11 +237,12 @@ function guardarViaje() {
     return;
   }
 
-  const costoViaje  = _totalKmG * vkm + peajes + choferPago;
-  const ganancia    = facturado - costoViaje;
-  const margen      = facturado > 0 ? ganancia / facturado * 100 : 0;
-  const consumoReal = (litros > 0 && vkm > 0) ? litros / vkm * 100 : null;
-  const consumoTeo  = rendTeo > 0 ? 100 / rendTeo : null;
+  const costoLitrosG = litros > 0 ? litros * precioL : _combustKmG * vkm;
+  const costoViaje   = _indKmG * vkm + costoLitrosG + peajes + choferPago;
+  const ganancia     = facturado - costoViaje;
+  const margen       = facturado > 0 ? ganancia / facturado * 100 : 0;
+  const consumoReal  = (litros > 0 && vkm > 0) ? litros / vkm * 100 : null;
+  const consumoTeo   = rendTeo > 0 ? 100 / rendTeo : null;
 
   const viaje = {
     id: Date.now(),
