@@ -118,6 +118,8 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 .empty{padding:40px 20px;text-align:center;color:var(--text3);font-size:13px}
 .empty-icon{font-size:28px;margin-bottom:8px;opacity:.4}
 .page{display:none}.page.active{display:block;animation:fadeIn .25s ease}
+#page-fleetcost{padding:0;height:calc(100vh - 56px)}
+.fleetcost-frame{width:100%;height:100%;border:none;display:block}
 
 /* PAGAR HOY */
 .pagar-hoy-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);gap:12px}
