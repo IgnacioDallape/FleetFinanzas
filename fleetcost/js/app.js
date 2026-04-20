@@ -529,13 +529,8 @@ function limpiarHistorial() {
 }
 
 // ── UNITS ─────────────────────────────────────────────
-const _fcAuthId = (() => {
-  try {
-    var s = localStorage.getItem('fleet_session') || sessionStorage.getItem('fleet_session');
-    if (s) { var d = JSON.parse(s); return d.userId || 'nacho'; }
-  } catch(e) {}
-  return 'nacho';
-})();
+// fleet_uid is always in localStorage (set by Flujo on login/restore) so iframes can read it
+const _fcAuthId    = localStorage.getItem('fleet_uid') || 'nacho';
 const FC_UNITS_KEY = _fcAuthId === 'nacho' ? 'fleetcost_unidades' : 'fleetcost_unidades_' + _fcAuthId;
 
 function loadUnitsFC() {

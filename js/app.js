@@ -17,6 +17,8 @@ function doLogin(e) {
     const payload = JSON.stringify({ expiry: remember ? Date.now() + 30 * 864e5 : null, userId: match.id });
     if (remember) localStorage.setItem(AUTH_KEY, payload);
     else          sessionStorage.setItem(AUTH_KEY, payload);
+    // Always store userId in localStorage so iframes can read it regardless of sessionStorage isolation
+    localStorage.setItem('fleet_uid', match.id);
     // Reload so app re-initialises with the correct storage keys for this user
     window.location.reload();
   } else {
@@ -32,6 +34,7 @@ function doLogin(e) {
 
 function doLogout() {
   localStorage.removeItem(AUTH_KEY);
+  localStorage.removeItem('fleet_uid');
   sessionStorage.removeItem(AUTH_KEY);
   window.location.reload();
 }
