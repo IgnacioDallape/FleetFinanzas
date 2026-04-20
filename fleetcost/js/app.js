@@ -325,22 +325,55 @@ function toggleGroup(idx) {
   if (icon)  icon.style.transform = _groupsOpen[idx] ? 'rotate(180deg)' : '';
 }
 
+function toggleCard(id) {
+  const body = document.getElementById(id);
+  const icon = document.getElementById(id + '-icon');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : '';
+  if (icon) icon.style.transform = open ? '' : 'rotate(180deg)';
+}
+
 function histCardCompactHTML(v, n, showChofer) {
-  const isPos = v.ganancia >= 0;
-  const km    = (v.totalKm || v.vkm).toLocaleString('es-AR');
+  const isPos  = v.ganancia >= 0;
+  const cid    = 'hc-' + v.id;
+  const retLbl = v.hasRetorno ? (v.retornoCliente ? `↩ ${v.retornoCliente}` : '↩ retorno') : '';
+
+  const details = [
+    v.hasRetorno ? `<div class="hcd-sep">Ida</div>
+      <div class="hcd-row"><span class="hcd-k">Km</span><span class="hcd-v">${v.vkm.toLocaleString('es-AR')} km</span></div>
+      <div class="hcd-row"><span class="hcd-k">Facturado</span><span class="hcd-v">${fmtM(v.facturado)}</span></div>
+      <div class="hcd-sep">Retorno${v.retornoCliente ? ' · ' + v.retornoCliente : ''}</div>
+      <div class="hcd-row"><span class="hcd-k">Km</span><span class="hcd-v">${(v.retornoKm||0).toLocaleString('es-AR')} km</span></div>
+      <div class="hcd-row"><span class="hcd-k">Facturado</span><span class="hcd-v">${fmtM(v.retornoMonto||0)}</span></div>
+      <div class="hcd-sep">Totales</div>` : '',
+    `<div class="hcd-row"><span class="hcd-k">Km totales</span><span class="hcd-v">${(v.totalKm||v.vkm).toLocaleString('es-AR')} km</span></div>`,
+    `<div class="hcd-row"><span class="hcd-k">Facturado</span><span class="hcd-v">${fmtM(v.totalFacturado||v.facturado)}</span></div>`,
+    `<div class="hcd-row"><span class="hcd-k">Costo total</span><span class="hcd-v">${fmtM(v.costoViaje)}</span></div>`,
+    `<div class="hcd-row"><span class="hcd-k">Margen</span><span class="hcd-v ${isPos?'hgs-pos':'hgs-neg'}">${v.margen.toFixed(1)}%</span></div>`,
+    v.consumoReal !== null ? `<div class="hcd-row"><span class="hcd-k">Consumo real</span><span class="hcd-v hcc-cons">${v.consumoReal.toFixed(1)} L/100km</span></div>` : '',
+    v.choferPago > 0 ? `<div class="hcd-row"><span class="hcd-k">Pago chofer</span><span class="hcd-v">${fmtM(v.choferPago)}</span></div>` : '',
+    showChofer ? `<div class="hcd-row"><span class="hcd-k">Chofer</span><span class="hcd-v">${v.choferNombre||'—'}</span></div>` : '',
+  ].join('');
+
   return `
   <div class="hist-card-compact">
-    <span class="hist-num">#${n}</span>
-    <div class="hcc-main">
-      <span class="hcc-desc">${v.desc}${v.hasRetorno ? '<span class="hcc-ret">↩</span>' : ''}</span>
-      ${showChofer && v.choferNombre ? `<span class="hcc-tag">${v.choferNombre}</span>` : ''}
+    <div class="hcc-header" onclick="toggleCard('${cid}')">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+        <span class="hist-num">#${n}</span>
+        <div class="hcc-main">
+          <span class="hcc-desc">${v.desc}</span>
+          ${retLbl ? `<span class="hcc-ret">${retLbl}</span>` : ''}
+          ${showChofer && v.choferNombre ? `<span class="hcc-tag">${v.choferNombre}</span>` : ''}
+        </div>
+      </div>
+      <div class="hcc-meta">
+        <span class="hcc-date">${v.fecha}</span>
+        <span class="hist-badge ${isPos?'pos':'neg'}" style="font-size:10px;padding:2px 8px;">${isPos?'+':''}${fmtM(Math.round(v.ganancia))}</span>
+        <div class="hcc-chev" id="${cid}-icon"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
     </div>
-    <div class="hcc-meta">
-      <span class="hcc-km">${km} km</span>
-      <span class="hcc-fact">${fmtM(v.totalFacturado || v.facturado)}</span>
-      ${v.consumoReal !== null ? `<span class="hcc-cons">${v.consumoReal.toFixed(1)}L</span>` : ''}
-      <span class="hist-badge ${isPos ? 'pos' : 'neg'}" style="font-size:10px;padding:2px 7px;">${isPos ? '+' : ''}${fmtM(Math.round(v.ganancia))}</span>
-    </div>
+    <div class="hcc-body" id="${cid}" style="display:none;">${details}</div>
   </div>`;
 }
 
