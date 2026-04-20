@@ -6,6 +6,26 @@
 <title>FleetCost — Calculadora de Costos</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<script>
+(function(){
+  // If loaded in iframe from Flujo, skip check (parent already authenticated)
+  if(window.self!==window.top)return;
+  try{
+    var s=localStorage.getItem('fleet_session')||sessionStorage.getItem('fleet_session');
+    if(s){var d=JSON.parse(s);if(!d.expiry||Date.now()<d.expiry){document.documentElement.classList.add('is-authed');return;}}
+    localStorage.removeItem('fleet_session');
+  }catch(e){}
+})();
+</script>
+<style>
+html:not(.is-authed) .page{display:none!important}
+html:not(.is-authed)::after{
+  content:'Acceso denegado — ingresá desde la app principal';
+  display:flex;align-items:center;justify-content:center;
+  position:fixed;inset:0;font-family:sans-serif;font-size:15px;color:#888;
+  background:#F6F5F2;
+}
+</style>
 </head>
 <body>
 <div class="orb orb-1"></div>

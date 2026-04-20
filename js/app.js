@@ -1,3 +1,46 @@
+// ── AUTH ──────────────────────────────────────────────
+const AUTH_KEY  = 'fleet_session';
+const AUTH_USER = 'nachodallape2@gmail.com';
+const AUTH_PASS = '101010';
+
+function doLogin(e) {
+  e.preventDefault();
+  const user     = document.getElementById('l-user').value.trim();
+  const pass     = document.getElementById('l-pass').value;
+  const remember = document.getElementById('l-remember').checked;
+  const errEl    = document.getElementById('login-error');
+  if (user === AUTH_USER && pass === AUTH_PASS) {
+    errEl.style.display = 'none';
+    const payload = JSON.stringify({ expiry: remember ? Date.now() + 30 * 864e5 : null });
+    if (remember) localStorage.setItem(AUTH_KEY, payload);
+    else          sessionStorage.setItem(AUTH_KEY, payload);
+    document.documentElement.classList.add('is-authed');
+    const ov = document.getElementById('login-overlay');
+    ov.style.animation = 'loginFadeOut .3s ease forwards';
+    setTimeout(() => ov.style.display = 'none', 300);
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('l-pass').value = '';
+    document.getElementById('l-pass').focus();
+    const card = document.querySelector('.login-card');
+    card.style.animation = 'none';
+    requestAnimationFrame(() => { card.style.animation = 'loginShake .35s ease'; });
+  }
+  return false;
+}
+
+function doLogout() {
+  localStorage.removeItem(AUTH_KEY);
+  sessionStorage.removeItem(AUTH_KEY);
+  document.documentElement.classList.remove('is-authed');
+  const ov = document.getElementById('login-overlay');
+  ov.style.display = '';
+  ov.style.animation = '';
+  document.getElementById('l-pass').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+// ── APP ───────────────────────────────────────────────
 const TODAY = new Date().toISOString().slice(0, 10);
 const UNITS_KEY = 'fleetcost_unidades';
 const fmt = v => '$\u00a0' + Math.round(v).toLocaleString('es-AR');

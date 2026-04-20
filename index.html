@@ -9,14 +9,53 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link rel="stylesheet" href="css/styles.css">
+<script>
+(function(){
+  try{
+    var s=localStorage.getItem('fleet_session')||sessionStorage.getItem('fleet_session');
+    if(s){var d=JSON.parse(s);if(!d.expiry||Date.now()<d.expiry){document.documentElement.classList.add('is-authed');return;}}
+    localStorage.removeItem('fleet_session');
+  }catch(e){}
+})();
+</script>
 </head>
 <body>
+
+<!-- LOGIN -->
+<div id="login-overlay" class="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-dot" style="width:12px;height:12px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
+      <span class="login-logo-name">flujo</span>
+    </div>
+    <div class="login-title">Bienvenido de vuelta</div>
+    <div class="login-sub">FleetFinanzas · Planificador de transportes</div>
+    <form class="login-form" onsubmit="return doLogin(event)" autocomplete="on">
+      <div class="login-field">
+        <label class="login-label" for="l-user">Usuario</label>
+        <input class="login-input" type="email" id="l-user" name="username" autocomplete="username" placeholder="correo@ejemplo.com" required>
+      </div>
+      <div class="login-field">
+        <label class="login-label" for="l-pass">Contraseña</label>
+        <input class="login-input" type="password" id="l-pass" name="password" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      <label class="login-remember-row">
+        <input type="checkbox" id="l-remember" class="login-checkbox">
+        <span class="login-remember-label">Recordar sesión por 30 días</span>
+      </label>
+      <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+      <button type="submit" class="login-btn">Ingresar</button>
+    </form>
+  </div>
+</div>
+
 <div class="app">
   <header class="topbar">
     <div class="logo"><div class="logo-dot"></div>flujo</div>
     <div class="topbar-right">
       <div class="saldo-pill"><span class="saldo-label">Disponible</span><span id="top-saldo">$0</span></div>
       <button class="btn btn-sm" onclick="exportJSON()">↓ Exportar</button>
+      <button class="btn btn-sm" onclick="doLogout()" title="Cerrar sesión" style="opacity:.6;">⎋ Salir</button>
     </div>
   </header>
 
