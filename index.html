@@ -108,43 +108,31 @@
       <div class="metrics" id="dash-metrics"></div>
       <div class="alerts" id="dash-alerts" style="display:none"></div>
 
+      <!-- GRAFICOS -->
       <div class="grid2">
-        <div style="display:flex;flex-direction:column;gap:20px">
-          <div class="card">
-            <div class="card-header"><span class="card-title">¿Qué puedo pagar hoy?</span><span id="rec-saldo-disp" style="font-size:12px;font-family:var(--font-mono);color:var(--text3)"></span></div>
-            <div class="rec-list" id="rec-list"></div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Flujo acumulado</span></div>
+          <div class="card-body" style="padding:16px">
+            <div class="chart-wrap" style="height:220px"><canvas id="chart-flujo" role="img" aria-label="Grafico flujo de caja"></canvas></div>
           </div>
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title">Simular depósito de cheques</span>
-              <button class="btn btn-sm" onclick="cheqReset()">↺ Reiniciar</button>
-            </div>
-            <div id="cheq-cobros-list" style="padding:10px 10px 4px"></div>
-            <div style="border-top:1px solid var(--border);padding:12px 16px;display:flex;flex-direction:column;gap:8px">
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">Bruto total</span>
-                <span id="cheq-bruto" style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text)">$ 0</span>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <span style="font-size:11px;color:var(--text3)">Imp. al cheque crédito (0,6%)</span>
-                <span id="cheq-imp" style="font-family:var(--font-mono);font-size:12px;color:var(--red)"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <span style="font-size:11px;color:var(--text3)">SIRCREB Mendoza (1,5%)</span>
-                <span id="cheq-sircreb" style="font-family:var(--font-mono);font-size:12px;color:var(--red)"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
-                <span style="font-size:12px;font-weight:500">Neto a acreditar</span>
-                <span id="cheq-neto" style="font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--accent)"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <span style="font-size:11px;color:var(--text3)">Saldo disponible post-depósito</span>
-                <span id="cheq-saldo-post" style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--blue)"></span>
-              </div>
-              <div id="cheq-confirm-msg" style="display:none;padding:8px 10px;background:var(--accent-dim);border-radius:var(--radius-sm);font-size:12px;color:var(--accent);border:1px solid rgba(26,107,58,.2)"></div>
-              <button id="cheq-depositar-btn" class="btn btn-accent" style="width:100%;display:none;margin-top:4px" onclick="cheqDepositar()">✓ Confirmar depósito</button>
-            </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Pagos por categoría</span></div>
+          <div class="card-body" style="padding:16px">
+            <div class="chart-wrap" style="height:220px"><canvas id="chart-cats" role="img" aria-label="Grafico categorias"></canvas></div>
           </div>
+        </div>
+      </div>
+
+      <!-- PAGOS + COBROS -->
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">¿Qué puedo pagar hoy?</span>
+            <span id="rec-saldo-disp" style="font-size:12px;font-family:var(--font-mono);color:var(--text3)"></span>
+          </div>
+          <div id="rec-mode-bar"></div>
+          <div class="rec-list" id="rec-list"></div>
         </div>
         <!-- COBROS SIMULATOR -->
         <div class="card cs-card">
@@ -172,21 +160,6 @@
             ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="csDropTo('pendientes',event)">
             <div id="cs-pendientes-empty" class="cs-empty-hint" style="display:none;">Sin cobros pendientes</div>
             <div id="cs-pendientes-list"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Flujo acumulado</span></div>
-          <div class="card-body" style="padding:16px">
-            <div class="chart-wrap" style="height:200px"><canvas id="chart-flujo" role="img" aria-label="Gráfico flujo de caja"></canvas></div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Pagos por categoría</span></div>
-          <div class="card-body" style="padding:16px">
-            <div class="chart-wrap" style="height:200px"><canvas id="chart-cats" role="img" aria-label="Gráfico categorías"></canvas></div>
           </div>
         </div>
       </div>

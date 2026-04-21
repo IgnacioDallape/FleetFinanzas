@@ -246,6 +246,12 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 .rec-item{cursor:grab}.rec-item.dragging{opacity:.4;cursor:grabbing}
 .rec-item.drag-over{border-top:2px solid var(--accent)}
 .rec-drag-handle{color:var(--text3);font-size:14px;flex-shrink:0;cursor:grab;padding:0 4px;user-select:none}
+/* Rec mode pills */
+.rec-mode-pills{display:flex;gap:6px;padding:8px 14px 6px;border-bottom:1px solid var(--border);}
+.rec-mode-pill{padding:4px 11px;border-radius:100px;border:1px solid var(--border2);font-size:11px;cursor:pointer;transition:all .15s;color:var(--text2);background:transparent;font-family:var(--font-sans);}
+.rec-mode-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.rec-mode-pill:hover:not(.active):not(:disabled){background:var(--bg3);border-color:var(--accent);color:var(--accent);}
+.rec-mode-pill:disabled{opacity:.35;cursor:default;}
 .sim-cobro-btn{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg2);gap:10px;margin-bottom:6px;transition:all .15s}
 .sim-cobro-btn:hover{border-color:rgba(26,107,58,.3);background:var(--accent-dim2)}
 .sim-cobro-btn-left{flex:1;min-width:0}
