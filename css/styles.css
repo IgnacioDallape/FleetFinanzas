@@ -394,3 +394,6 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 .notif-item.notif-success{background:var(--accent-dim2);color:var(--accent)}
 .notif-icon{font-size:13px;flex-shrink:0;margin-top:1px}
 .notif-empty{padding:18px 14px;font-size:12px;color:var(--accent);text-align:center}
+
+/* ── DASHBOARD SCALE ── */
+#page-dashboard{zoom:1.015}
