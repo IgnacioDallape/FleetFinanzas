@@ -308,6 +308,15 @@ body{
   padding:4px 10px;border-radius:20px;background:var(--accent-dim);
   border:1px solid var(--accent-dim2);color:var(--accent);
 }
+.trip-clear-btn{
+  display:flex;align-items:center;gap:5px;padding:5px 11px;
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r-sm);color:var(--muted2);
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .15s;box-shadow:var(--shadow-sm);
+}
+.trip-clear-btn:hover{color:var(--red);border-color:#FECACA;background:var(--red-dim);}
+.trip-clear-btn svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 .trip-grid{display:grid;grid-template-columns:310px 1fr 1fr;gap:0;}
 @media(max-width:900px){.trip-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:600px){.trip-grid{grid-template-columns:1fr;}}

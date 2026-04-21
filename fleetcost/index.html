@@ -326,7 +326,13 @@ html:not(.is-authed)::after{
             <div class="trip-desc">calculá la ganancia de cada flete</div>
           </div>
         </div>
-        <span class="trip-badge">por viaje</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="trip-badge">por viaje</span>
+          <button class="trip-clear-btn" onclick="limpiarViaje()" title="Limpiar datos del viaje">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            Limpiar
+          </button>
+        </div>
       </div>
       <div class="trip-grid">
         <div class="trip-inputs">
@@ -335,6 +341,14 @@ html:not(.is-authed)::after{
             <div class="input-wrap">
               <span class="input-affix">$</span>
               <input type="number" id="v-facturado" value="0" min="0" step="1000" oninput="calcularViaje()" placeholder="0">
+            </div>
+          </div>
+          <div class="rule"></div>
+          <div class="field">
+            <div class="field-label">Monto cotizado <span class="field-hint">presupuesto inicial — opcional</span></div>
+            <div class="input-wrap">
+              <span class="input-affix">$</span>
+              <input type="number" id="v-cotizado" value="0" min="0" step="1000" oninput="calcularViaje()" placeholder="0">
             </div>
           </div>
           <div class="rule"></div>
