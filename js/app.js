@@ -278,7 +278,6 @@ function renderDashboard(){
 
   // QUÉ PUEDO PAGAR HOY
   renderRecomendacion();
-  renderCheqSimulator();
 
   renderCobrosSim();
   updateNavBadge();
@@ -290,6 +289,12 @@ function renderDashboard(){
 
 // Order for "qué puedo pagar hoy" — user can drag to reorder
 let recOrder = [];  // array of pago ids in current order
+let recUseCobros = false; // whether to include cobros simulados in base saldo
+
+function toggleRecMode(useCobros) {
+  recUseCobros = useCobros;
+  renderRecomendacion();
+}
 
 function initRecOrder() {
   const ids = data.pagos.filter(p=>!p.pagado)
@@ -305,13 +310,42 @@ function initRecOrder() {
 function renderRecomendacion(){
   initRecOrder();
   const ordered = recOrder.map(id=>data.pagos.find(p=>p.id===id)).filter(Boolean).filter(p=>!p.pagado);
-  document.getElementById('rec-saldo-disp').textContent='Disponible: '+fmt(data.disponible);
-  let saldoSim=data.disponible;
+
+  // Compute cobros simulados total (from cs panel)
+  const allCobros = data.cobros.filter(c=>!c.cobrado);
+  const cobrosSimTotal = [...cobrosSimSelected]
+    .map(id=>allCobros.find(c=>c.id===id))
+    .filter(Boolean)
+    .reduce((s,c)=>s+calcNetoIngreso(c), 0);
+
+  const hasCobros = cobrosSimTotal > 0;
+  // If cobros were cleared, reset mode
+  if(!hasCobros && recUseCobros) recUseCobros = false;
+
+  const baseDisp = data.disponible + (recUseCobros ? cobrosSimTotal : 0);
+
+  // Header saldo pill
+  document.getElementById('rec-saldo-disp').textContent = 'Base: '+fmt(baseDisp);
+
+  // Mode bar
+  const modeBar = document.getElementById('rec-mode-bar');
+  if(modeBar){
+    modeBar.innerHTML = `<div class="rec-mode-pills">
+      <button class="rec-mode-pill${!recUseCobros?' active':''}" onclick="toggleRecMode(false)">Solo disponible</button>
+      <button class="rec-mode-pill${recUseCobros?' active':''}"
+        onclick="toggleRecMode(true)"
+        ${!hasCobros?'disabled title="Arrastrá cobros al panel para activar"':''}>
+        + cobros simulados${hasCobros?' ('+fmt(cobrosSimTotal)+')':''}
+      </button>
+    </div>`;
+  }
+
+  let saldoSim = baseDisp;
   const items=ordered.map((p,i)=>{
     const puedo=saldoSim>=p.monto;
-    const html=`<div class="rec-item" draggable="true" data-id="${p.id}" 
-      ondragstart="recDragStart(event,${p.id})" 
-      ondragover="recDragOver(event)" 
+    const html=`<div class="rec-item" draggable="true" data-id="${p.id}"
+      ondragstart="recDragStart(event,${p.id})"
+      ondragover="recDragOver(event)"
       ondrop="recDrop(event,${p.id})"
       ondragend="recDragEnd(event)">
       <span class="rec-drag-handle">⠿</span>
@@ -1067,14 +1101,18 @@ function csDropTo(zone, event) {
   zone === 'acobrar' ? cobrosSimSelected.add(csDragId) : cobrosSimSelected.delete(csDragId);
   csDragId = null;
   renderCobrosSim();
+  renderRecomendacion();
 }
 function csToggle(id) {
   cobrosSimSelected.has(id) ? cobrosSimSelected.delete(id) : cobrosSimSelected.add(id);
   renderCobrosSim();
+  renderRecomendacion();
 }
 function cobrosSimReset() {
   cobrosSimSelected = new Set();
+  recUseCobros = false;
   renderCobrosSim();
+  renderRecomendacion();
 }
 
 function renderCheqSimulator() {
