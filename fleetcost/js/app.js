@@ -111,6 +111,7 @@ function toggleRetorno() {
 
 function calcularViaje() {
   const facturado      = parseFloat(document.getElementById('v-facturado').value) || 0;
+  const cotizado       = parseFloat(document.getElementById('v-cotizado').value) || 0;
   const vkm            = parseFloat(document.getElementById('v-km').value) || 0;
   const peajes         = parseFloat(document.getElementById('v-peajes').value) || 0;
   const litros         = parseFloat(document.getElementById('v-litros').value) || 0;
@@ -173,6 +174,40 @@ function calcularViaje() {
         <div class="tm-sub">todos los rubros incluidos</div>
       </div>
     </div>
+    ${(() => {
+      const barPct  = Math.min(Math.abs(margen), 50) * 2; // 0-100% visual
+      const color   = margen >= 30 ? '#2BB89A' : margen >= 15 ? '#D4820A' : '#E05A2B';
+      const label   = margen >= 30 ? 'Alta' : margen >= 15 ? 'Media' : 'Baja';
+      const sublbl  = margen >= 30 ? 'excelente resultado' : margen >= 15 ? 'margen aceptable' : 'margen bajo';
+      return `<div style="margin-top:8px;padding:12px 14px;border-radius:var(--r-sm);background:var(--bg2);border:1px solid var(--border2);">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Rentabilidad del viaje</div>
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:${color};">${margen.toFixed(1)}%</span>
+            <span style="font-family:'Syne',sans-serif;font-size:11px;font-weight:600;color:${color};">${label}</span>
+          </div>
+        </div>
+        <div style="height:6px;border-radius:3px;background:var(--border2);overflow:hidden;">
+          <div style="height:100%;width:${barPct}%;background:${color};border-radius:3px;transition:width .4s ease;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);">${sublbl}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);">30% = buena rentabilidad</span>
+        </div>
+      </div>`;
+    })()}
+    ${cotizado > 0 ? (() => {
+      const diff = totalFacturado - cotizado;
+      const isOver = diff >= 0;
+      return `<div style="margin-top:8px;padding:10px 13px;border-radius:var(--r-sm);background:${isOver?'#2BB89A0D':'#E05A2B0D'};border:1px solid ${isOver?'#2BB89A25':'#E05A2B25'};">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Cotizado vs facturado</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div class="tm-card"><div class="tm-tag">Cotizado</div><div class="tm-val">${fmtM(cotizado)}</div><div class="tm-sub">presupuesto</div></div>
+          <div class="tm-card"><div class="tm-tag">Facturado</div><div class="tm-val">${fmtM(totalFacturado)}</div><div class="tm-sub">real</div></div>
+          <div class="tm-card"><div class="tm-tag">Diferencia</div><div class="tm-val" style="color:${isOver?'var(--green)':'#E05A2B'}">${isOver?'+':''}${fmtM(diff)}</div><div class="tm-sub">${isOver?'por encima':'por debajo'}</div></div>
+        </div>
+      </div>`;
+    })() : ''}
   `;
 
   elB.innerHTML = `
@@ -207,6 +242,15 @@ function calcularViaje() {
         <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:${isPos ? 'var(--green)' : '#E05A2B'};">${isPos ? '' : '−'}${fmtM(Math.abs(ganancia))}</span>
       </div>
     </div>
+    ${costoViaje > 0 ? `
+    <div style="margin-top:12px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Precio mínimo sugerido</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div class="tm-card"><div class="tm-tag">Break-even</div><div class="tm-val" style="font-size:13px;">${fmtM(costoViaje)}</div><div class="tm-sub">0% margen</div></div>
+        <div class="tm-card"><div class="tm-tag">+20% margen</div><div class="tm-val" style="font-size:13px;">${fmtM(costoViaje / 0.80)}</div><div class="tm-sub">recomendado</div></div>
+        <div class="tm-card"><div class="tm-tag">+30% margen</div><div class="tm-val" style="font-size:13px;">${fmtM(costoViaje / 0.70)}</div><div class="tm-sub">óptimo</div></div>
+      </div>
+    </div>` : ''}
     ${consumoReal !== null ? `
     <div style="margin-top:12px;">
       <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
@@ -256,6 +300,7 @@ let viajesGuardados = [];
 
 function guardarViaje() {
   const facturado      = parseFloat(document.getElementById('v-facturado').value) || 0;
+  const cotizado       = parseFloat(document.getElementById('v-cotizado').value) || 0;
   const vkm            = parseFloat(document.getElementById('v-km').value) || 0;
   const peajes         = parseFloat(document.getElementById('v-peajes').value) || 0;
   const litros         = parseFloat(document.getElementById('v-litros').value) || 0;
@@ -296,12 +341,13 @@ function guardarViaje() {
     fecha: fechaObj.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
     mesKey: `${fechaObj.getFullYear()}-${String(fechaObj.getMonth()+1).padStart(2,'0')}`,
     mesLabel: fechaObj.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
-    desc, facturado, totalFacturado, vkm, totalKm, peajes, litros, choferPago,
+    desc, facturado, cotizado, totalFacturado, vkm, totalKm, peajes, litros, choferPago,
     choferNombre, retornoMonto, retornoKm, retornoCliente, hasRetorno: _hasRetorno,
     costoViaje, ganancia, margen, consumoReal, consumoTeo, precioL,
   };
 
   viajesGuardados.unshift(viaje);
+  saveHistorial();
   document.getElementById('tab-count').textContent = viajesGuardados.length;
 
   const t = document.getElementById('save-toast');
@@ -363,6 +409,7 @@ function histCardCompactHTML(v, n, showChofer) {
     `<div class="hcd-row"><span class="hcd-k">Margen</span><span class="hcd-v ${isPos?'hgs-pos':'hgs-neg'}">${v.margen.toFixed(1)}%</span></div>`,
     v.consumoReal !== null ? `<div class="hcd-row"><span class="hcd-k">Consumo real</span><span class="hcd-v hcc-cons">${v.consumoReal.toFixed(1)} L/100km</span></div>` : '',
     v.choferPago > 0 ? `<div class="hcd-row"><span class="hcd-k">Pago chofer</span><span class="hcd-v">${fmtM(v.choferPago)}</span></div>` : '',
+    v.cotizado > 0 ? `<div class="hcd-row"><span class="hcd-k">Cotizado</span><span class="hcd-v" style="color:${v.cotizado > (v.totalFacturado||v.facturado) ? '#E05A2B' : 'var(--green)'}">${fmtM(v.cotizado)}</span></div>` : '',
     showChofer ? `<div class="hcd-row"><span class="hcd-k">Chofer</span><span class="hcd-v">${v.choferNombre||'—'}</span></div>` : '',
   ].join('');
 
@@ -494,6 +541,7 @@ function editViaje(id) {
 
   // Remover del historial (se re-guarda al guardar de nuevo)
   viajesGuardados = viajesGuardados.filter(x => x.id !== id);
+  saveHistorial();
   document.getElementById('tab-count').textContent = viajesGuardados.length;
 
   // Ir a calculadora
@@ -501,6 +549,7 @@ function editViaje(id) {
 
   // Llenar campos del simulador
   document.getElementById('v-facturado').value     = v.facturado    || 0;
+  document.getElementById('v-cotizado').value      = v.cotizado     || 0;
   document.getElementById('v-km').value            = v.vkm          || 0;
   document.getElementById('v-peajes').value        = v.peajes       || 0;
   document.getElementById('v-litros').value        = v.litros       || 0;
@@ -520,10 +569,29 @@ function editViaje(id) {
   document.querySelector('.trip-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function limpiarViaje() {
+  document.getElementById('v-facturado').value     = 0;
+  document.getElementById('v-cotizado').value      = 0;
+  document.getElementById('v-km').value            = 0;
+  document.getElementById('v-peajes').value        = 0;
+  document.getElementById('v-litros').value        = 0;
+  document.getElementById('v-chofer-pago').value   = 0;
+  document.getElementById('v-chofer-nombre').value = '';
+  document.getElementById('v-desc').value          = '';
+  if (_hasRetorno) {
+    document.getElementById('v-retorno-monto').value   = 0;
+    document.getElementById('v-retorno-km').value      = 0;
+    document.getElementById('v-retorno-cliente').value = '';
+    toggleRetorno();
+  }
+  calcularViaje();
+}
+
 function limpiarHistorial() {
   if (viajesGuardados.length === 0) return;
   if (!confirm('¿Eliminar todos los viajes guardados?')) return;
   viajesGuardados = [];
+  saveHistorial();
   document.getElementById('tab-count').textContent = '0';
   renderHistorial();
 }
@@ -532,6 +600,14 @@ function limpiarHistorial() {
 // fleet_uid is always in localStorage (set by Flujo on login/restore) so iframes can read it
 const _fcAuthId    = localStorage.getItem('fleet_uid') || 'nacho';
 const FC_UNITS_KEY = _fcAuthId === 'nacho' ? 'fleetcost_unidades' : 'fleetcost_unidades_' + _fcAuthId;
+const FC_HIST_KEY  = _fcAuthId === 'nacho' ? 'fleetcost_historial' : 'fleetcost_historial_' + _fcAuthId;
+
+function loadHistorialSaved() {
+  try { return JSON.parse(localStorage.getItem(FC_HIST_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveHistorial() {
+  try { localStorage.setItem(FC_HIST_KEY, JSON.stringify(viajesGuardados)); } catch(e) {}
+}
 
 function loadUnitsFC() {
   try { return JSON.parse(localStorage.getItem(FC_UNITS_KEY) || '[]'); }
@@ -586,6 +662,24 @@ function selectUnit(id) {
   calcular();
 }
 
+// ── SYNC PRECIO GASOIL DESDE FLUJO ────────────────────
+function syncPrecioGasoil() {
+  try {
+    const uid = localStorage.getItem('fleet_uid') || 'nacho';
+    const key = uid === 'nacho' ? 'flujo_v7' : 'flujo_v7_' + uid;
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    const precio = data?.ypf?.precioPorLitro;
+    if (precio && precio > 0) {
+      const el = document.getElementById('precio-litro');
+      if (el) el.value = precio;
+      const hint = document.querySelector('#precio-litro')?.closest('.field')?.querySelector('.field-hint');
+      if (hint) hint.textContent = 'sincronizado desde Flujo';
+    }
+  } catch(e) {}
+}
+
 // ── INIT ──────────────────────────────────────────────
 window.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'units-updated') populateUnitSelector();
@@ -594,6 +688,9 @@ window.addEventListener('message', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('footer-date').textContent =
     new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+  viajesGuardados = loadHistorialSaved();
+  document.getElementById('tab-count').textContent = viajesGuardados.length;
   populateUnitSelector();
+  syncPrecioGasoil();
   calcular();
 });
