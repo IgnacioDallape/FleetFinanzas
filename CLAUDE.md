@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Two standalone vanilla JS/HTML/CSS apps in the same repo, deployed via Vercel at `https://fleet-finanzas.vercel.app/`.
 
-- **Flujo** (`/`) — Financial planner for a logistics business: cobros (receivables), pagos (payables), cheque simulator, cash flow projection, YPF fuel tracking, costos fijos/varios, truck unit profiles (Unidades).
+- **Flujo** (`/`) — Financial planner for a logistics business: cobros (receivables), pagos (payables), cash flow projection, YPF fuel tracking, costos fijos/varios, truck unit profiles (Unidades).
 - **FleetCost** (`/fleetcost/`) — Per-trip cost calculator for freight transport: fixed cost indexing, trip simulator with retorno toggle, historial grouped by month or driver, unit selector that loads truck configs from Flujo.
 
 No build step, no package manager, no framework. Open `index.html` directly in a browser or serve statically.
@@ -15,8 +15,8 @@ No build step, no package manager, no framework. Open `index.html` directly in a
 
 ```
 index.html          Flujo SPA shell + all page HTML
-js/app.js           All Flujo logic (~1700 lines)
-css/styles.css      All Flujo styles (~280 lines)
+js/app.js           All Flujo logic (~1850 lines)
+css/styles.css      All Flujo styles (~400 lines)
 fleetcost/
   index.html        FleetCost shell
   js/app.js         FleetCost logic (~580 lines)
@@ -29,7 +29,7 @@ FleetCost is embedded inside Flujo via an `<iframe>` (see `#page-fleetcost` in `
 
 ### Data layer
 
-Single localStorage key `flujo_v7`. Shape:
+Single localStorage key per user (`flujo_v7` for nacho, `flujo_v7_ariel1234` for ariel). Shape:
 
 ```js
 {
@@ -48,6 +48,16 @@ Single localStorage key `flujo_v7`. Shape:
 
 `defaultData()` seeds initial data. `normalizeData()` handles migrations between storage key versions. `save()` serializes to localStorage and calls `updateTopbar()`.
 
+### Auth / multi-user
+
+`AUTH_USERS` array in `js/app.js` holds `{ user, pass, id }`. Session stored in `localStorage`/`sessionStorage` under `fleet_session`. `fleet_uid` always written to `localStorage` so iframes can read it.
+
+Storage keys are scoped per user:
+- `STORAGE_KEY`: `flujo_v7` (nacho) or `flujo_v7_<id>` (others)
+- `UNITS_KEY`: `fleetcost_unidades` (nacho) or `fleetcost_unidades_<id>` (others)
+
+Current users: `nachodallape2@gmail.com / 101010` and `arieltransporte@gmail.com / ariel1234`.
+
 ### Navigation / rendering
 
 `navigate(page, el)` shows `#page-{page}`, removes `.active` from all others, then calls the matching render function. Each section has one `render*()` function that rebuilds its DOM entirely via string templates.
@@ -58,7 +68,7 @@ Single localStorage key `flujo_v7`. Shape:
 - `UNITS_KEY = 'fleetcost_unidades'` — shared localStorage key for truck unit profiles (read by FleetCost too)
 - `TODAY` — date string `YYYY-MM-DD`, computed once at load
 - Cheque tax rates (Mendoza): `CHEQ_IMP = 0.006`, `CHEQ_SIRCREB = 0.015`
-- Cheque acreditación: transferencias +1 business day, cheques propios +3, cheques terceros +5
+- `calcNetoIngreso(cobro)` — returns net amount after retenciones (cheque: −2.1%, transferencia: −1.5%, efectivo: no deduction)
 
 ### Cheque flow
 
@@ -66,7 +76,7 @@ Single localStorage key `flujo_v7`. Shape:
 
 ### Cash flow projection
 
-`calcFlujo()` merges cobros + pagos into a sorted event array and accumulates running balance. Used by the Dashboard cheque simulator and the Flujo de Fondos calendar.
+`calcFlujo()` merges cobros + pagos into a sorted event array and accumulates running balance. Used by the Dashboard charts and the Flujo de Fondos calendar.
 
 ### Costos fijos
 
@@ -74,13 +84,33 @@ Single localStorage key `flujo_v7`. Shape:
 
 ### Unidades (truck unit profiles)
 
-CRUD for per-truck cost configs, stored in `localStorage` under `UNITS_KEY = 'fleetcost_unidades'` (same key FleetCost reads). Each unit shape:
+CRUD for per-truck cost configs, stored in `localStorage` under `UNITS_KEY` (same key FleetCost reads). Each unit shape:
 
 ```js
 { id, nombre, seguro, patente, manto, aceite, cubiertas, kmBase, choferKm, precioLitro, rendimiento }
 ```
 
 Functions: `loadUnits()`, `saveUnits(units)`, `renderUnidades()`, `openAddUnit()`, `openEditUnit(id)`, `saveUnit()`, `cancelUnit()`, `deleteUnit(id)`.
+
+### Dashboard layout (top to bottom)
+
+1. **Metrics row** (`#dash-metrics`) — saldo, cobros pendientes, pagos vencidos, etc.
+2. **Charts grid** — Flujo acumulado (bar) + Pagos por categoría (doughnut) via Chart.js
+3. **Main grid2** — left: "¿Qué puedo pagar hoy?" with mode toggle; right: Cobros simulator (drag & drop)
+
+**Notification bell** (`#notif-wrap`) in topbar: `renderDashboard()` builds `alertsArr` of `{type,icon,msg}` objects and populates `#notif-panel`. Badge shows count of `danger`+`warning` alerts only. `toggleNotifPanel()` toggles `.notif-open` class; outside-click closes it.
+
+**"¿Qué puedo pagar hoy?" mode toggle** (`#rec-mode-bar`): two pills rendered by `renderRecomendacion()`.
+- `recUseCobros = false` → base = `data.disponible`
+- `recUseCobros = true` → base = `data.disponible + cobrosSimTotal` (sum of neto from `cobrosSimSelected`)
+- `toggleRecMode(bool)` switches mode and re-renders. `cobrosSimReset()` also resets `recUseCobros`.
+- Mode bar re-renders whenever cobros sim changes (drop, toggle, reset all call `renderRecomendacion()`).
+
+**Cobros simulator** (`#cs-acobrar` / `#cs-pendientes`): drag chips from pending list to "A cobrar" zone. `cobrosSimSelected` (Set of ids) tracks selection. Zone "A cobrar" is `flex:0 0 auto` (starts compact, grows with content); pending zone is `flex:1`.
+
+### Dashboard font scale
+
+`#page-dashboard { zoom: 1.015 }` — 1.5% scale applied to entire dashboard page only.
 
 ## FleetCost — architecture
 
@@ -141,7 +171,7 @@ Cards are collapsible (`toggleCard(id)`) — header shows trip number, desc, ret
 
 Both apps use the same token names in `:root` but with slightly different values.
 
-Flujo palette: warm cream (`--bg: #F5F2EC`), accent green (`--accent`), fonts `DM Serif Display` / `DM Sans` / `DM Mono`.
+Flujo palette: warm cream (`--bg: #f5f4f0`), accent green (`--accent: #1a6b3a`), fonts `DM Serif Display` / `DM Sans` / `DM Mono`.
 
 FleetCost palette: `--bg: #F6F5F2`, accent teal `--accent: #2BB89A`, fonts `Syne` / `JetBrains Mono`. Base font is scaled up 10% via `zoom: 1.1` on `body`.
 
