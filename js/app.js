@@ -1455,7 +1455,7 @@ function renderFF() {
       })
     ].join('');
     cells+=`<div class="ff-day${isToday?' today':''}${isNeg?' negative':''}"
-      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragover="event.preventDefault();event.dataTransfer.dropEffect='move';this.classList.add('drag-over')"
       ondragleave="this.classList.remove('drag-over')"
       ondrop="ffDrop(event,'${ds}')">
       <div class="ff-day-num${isToday?' today-num':''}">${d}</div>
@@ -1501,6 +1501,7 @@ function renderFF() {
 function ffDragStart(event, pagoId) {
   ffDragId = pagoId;
   event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', pagoId.toString());
 }
 
 function ffDragEnd(event) {
