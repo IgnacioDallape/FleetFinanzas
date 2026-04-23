@@ -1488,7 +1488,7 @@ function renderFF() {
   const cobrosMes = data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr));
   document.getElementById('ff-cobros-mes').innerHTML = cobrosMes.length ?
     cobrosMes.sort((a,b)=>fechaAcreditacion(a).localeCompare(fechaAcreditacion(b))).map(c=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px">
+      <div draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab">
         <div>
           <div style="font-weight:500">${c.nombre}</div>
           <div style="font-size:10px;color:var(--text3)">${fmtDate(fechaAcreditacion(c))} · ${c.tipo}</div>
@@ -1498,24 +1498,33 @@ function renderFF() {
     '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros este mes</div>';
 }
 
-function ffDragStart(event, pagoId) {
-  ffDragId = pagoId;
+let ffDragType = null; // 'pago' o 'cobro'
+function ffDragStart(event, id, tipo='pago') {
+  ffDragId = id;
+  ffDragType = tipo;
   event.dataTransfer.effectAllowed = 'move';
-  event.dataTransfer.setData('text/plain', pagoId.toString());
+  event.dataTransfer.setData('text/plain', id.toString());
 }
 
 function ffDragEnd(event) {
   document.querySelectorAll('.ff-day.drag-over').forEach(el=>el.classList.remove('drag-over'));
   ffDragId = null;
+  ffDragType = null;
 }
 
 function ffDrop(event, fecha) {
   event.preventDefault();
   event.currentTarget.classList.remove('drag-over');
   if(ffDragId===null) return;
-  const p = data.pagos.find(x=>x.id===ffDragId);
-  if(!p) return;
-  p.fechaPago = fecha;
+
+  if(ffDragType === 'cobro') {
+    const c = data.cobros.find(x=>x.id===ffDragId);
+    if(!c) return;
+    c.fecha = fecha;
+  } else {
+    const p = data.pagos.find(x=>x.id===ffDragId);
+    if(!p) return;
+    p.fechaPago = fecha;
   save();
   renderFF();
 }
