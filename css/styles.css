@@ -341,12 +341,14 @@ select.form-input option{background:var(--bg3);color:var(--text)}
   .grid2,.grid3{grid-template-columns:1fr}
   .form-row2,.form-row3,.form-row4{grid-template-columns:1fr}
   .semana-grid{grid-template-columns:repeat(4,1fr)}
-  .topbar{padding:10px 8px;min-height:56px;gap:6px}
-  .topbar > div:first-child{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-  .logo{font-size:16px}
-  .topbar .saldo-pill .saldo-label{display:none}
-  .topbar .saldo-pill{padding:6px 10px;font-size:12px;white-space:nowrap}
-  .notif-bell{width:44px;height:44px;padding:6px}
+  .topbar{padding:8px 4px;min-height:52px;gap:2px}
+  .topbar > div:first-child{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+  .topbar-right{display:flex;align-items:center;gap:2px;flex-shrink:0}
+  .logo{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .logo-dot{display:none}
+  .saldo-pill{display:none}
+  .notif-bell{width:40px;height:40px;padding:6px}
+  .notif-badge{width:18px;height:18px;font-size:10px}
   /* En mobile, ocultar botones del topbar (están en sidebar) */
   .topbar-right > .btn{display:none}
   .page-header{margin-bottom:18px}
