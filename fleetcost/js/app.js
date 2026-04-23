@@ -477,6 +477,61 @@ function groupSummaryHTML(viajes, isChofer) {
   </div>`;
 }
 
+// Ranking comparativo entre choferes
+function renderChoferRanking(groups) {
+  // Calcular stats por chofer
+  const stats = [];
+  groups.forEach(({ label, viajes }) => {
+    const totalFact   = viajes.reduce((s, v) => s + (v.totalFacturado || v.facturado), 0);
+    const totalGan    = viajes.reduce((s, v) => s + v.ganancia, 0);
+    const totalKm     = viajes.reduce((s, v) => s + (v.totalKm || v.vkm), 0);
+    const avgMargen   = viajes.reduce((s, v) => s + v.margen, 0) / viajes.length;
+    const totalLitros = viajes.reduce((s, v) => s + (v.litros || 0), 0);
+    const conLitros   = viajes.filter(v => v.litros > 0 && (v.totalKm || v.vkm) > 0);
+    const consumoAvg  = conLitros.length
+      ? conLitros.reduce((s, v) => s + (v.consumoReal ?? ((v.litros / (v.totalKm || v.vkm)) * 100)), 0) / conLitros.length
+      : null;
+    stats.push({ chofer: label, viajes: viajes.length, totalFact, totalGan, totalKm, avgMargen, totalLitros, consumoAvg });
+  });
+
+  // Top en cada categoría
+  const topGanancia = [...stats].sort((a, b) => b.totalGan - a.totalGan)[0];
+  const topMargen   = [...stats].sort((a, b) => b.avgMargen - a.avgMargen)[0];
+  const conConsumo  = stats.filter(s => s.consumoAvg !== null);
+  const mejorConsumo = conConsumo.length ? [...conConsumo].sort((a, b) => a.consumoAvg - b.consumoAvg)[0] : null;
+  const topKm       = [...stats].sort((a, b) => b.totalKm - a.totalKm)[0];
+
+  return `
+    <div class="chofer-ranking">
+      <div class="cr-title">Ranking de choferes</div>
+      <div class="cr-grid">
+        <div class="cr-card cr-money">
+          <div class="cr-label">🏆 Más generó</div>
+          <div class="cr-name">${topGanancia.chofer}</div>
+          <div class="cr-value">${fmtM(topGanancia.totalGan)} <span class="cr-sub">en ${topGanancia.viajes} viaje${topGanancia.viajes !== 1 ? 's' : ''}</span></div>
+        </div>
+        <div class="cr-card cr-margin">
+          <div class="cr-label">📊 Mejor margen</div>
+          <div class="cr-name">${topMargen.chofer}</div>
+          <div class="cr-value">${topMargen.avgMargen.toFixed(1)}% <span class="cr-sub">promedio</span></div>
+        </div>
+        ${mejorConsumo ? `
+          <div class="cr-card cr-fuel">
+            <div class="cr-label">⛽ Mejor consumo</div>
+            <div class="cr-name">${mejorConsumo.chofer}</div>
+            <div class="cr-value">${mejorConsumo.consumoAvg.toFixed(1)} <span class="cr-sub">L/100km</span></div>
+          </div>
+        ` : ''}
+        <div class="cr-card cr-km">
+          <div class="cr-label">🛣️ Más kilómetros</div>
+          <div class="cr-name">${topKm.chofer}</div>
+          <div class="cr-value">${topKm.totalKm.toLocaleString('es-AR')} <span class="cr-sub">km</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // ── RENDER HISTORIAL ──────────────────────────────────
 function renderHistorial() {
   const empty = document.getElementById('hist-empty');
@@ -507,6 +562,11 @@ function renderHistorial() {
 
   let html = '';
   let globalN = viajesGuardados.length;
+
+  // Panel de ranking (sólo en vista por chofer y si hay 2+ choferes)
+  if (isChofer && groups.size >= 2) {
+    html += renderChoferRanking(groups);
+  }
 
   groups.forEach(({ label, viajes, idx }) => {
     // Por mes: abierto por defecto. Por chofer: cerrado por defecto.

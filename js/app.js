@@ -1723,6 +1723,7 @@ function cfMensual(c) {
   return m;
 }
 
+
 function renderCF() {
   if(!data.costosFijos) data.costosFijos = [];
   const cf = data.costosFijos;

@@ -304,28 +304,69 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 }
 .mobile-overlay.active{display:block}
 
+/* La sección Cuenta del sidebar solo aparece en mobile */
+.nav-section-mobile{display:none}
+
 @media(max-width:768px){
   .hamburger-btn{display:flex}
   .app{grid-template-columns:1fr}
   .sidebar{
     display:block;
+    background:var(--bg2);
     position:fixed;left:0;top:0;bottom:0;
-    width:240px;z-index:150;
+    width:260px;z-index:150;
     transform:translateX(-100%);
     transition:transform .25s cubic-bezier(.16,1,.3,1);
     box-shadow:none;
+    padding-top:16px;
   }
   .sidebar.mobile-open{
     transform:translateX(0);
     box-shadow:4px 0 24px rgba(0,0,0,.18);
   }
-  .main{padding:20px 16px}
+  .nav-section-mobile{
+    display:block;margin-top:24px;
+    padding-top:16px;border-top:1px solid var(--border);
+  }
+  .main{padding:18px 14px;overflow-x:hidden}
   .grid2,.grid3{grid-template-columns:1fr}
   .form-row2,.form-row3,.form-row4{grid-template-columns:1fr}
   .semana-grid{grid-template-columns:repeat(4,1fr)}
-  .topbar{padding:14px 16px}
-  .saldo-pill .saldo-label{display:none}
-  .btn.btn-sm[onclick="exportJSON()"]{display:none}
+  .topbar{padding:12px 14px}
+  .topbar .saldo-pill .saldo-label{display:none}
+  .topbar .saldo-pill{padding:5px 10px;font-size:12px}
+  /* En mobile, ocultar botones del topbar (están en sidebar) */
+  .topbar-right > .btn{display:none}
+  .page-header{margin-bottom:18px}
+  .page-title{font-size:22px}
+  .metrics{grid-template-columns:repeat(2,1fr);gap:8px}
+  .metric-card{padding:14px 12px}
+  .metric-value{font-size:18px}
+  .metric-label{font-size:10px}
+  .metric-sub{font-size:10px}
+  /* Tablas más legibles en mobile */
+  table{font-size:12px}
+  th,td{padding:8px 6px}
+  /* Notificaciones panel ocupa todo el ancho */
+  .notif-panel{right:-12px;width:calc(100vw - 28px);max-width:340px}
+  /* Cards y form panels ajustados */
+  .card{margin-bottom:14px}
+  .form-panel{padding:14px}
+  /* Iframe FleetCost */
+  .fleetcost-frame{height:calc(100vh - 100px)}
+  /* Logo más chico */
+  .logo{font-size:18px}
+}
+
+@media(max-width:480px){
+  .main{padding:14px 10px}
+  .topbar{padding:10px 12px;gap:8px}
+  .saldo-pill{font-size:11px;padding:4px 8px}
+  .metric-card{padding:10px}
+  .metric-value{font-size:16px}
+  .page-title{font-size:20px}
+  .nav-item{padding:11px 12px;font-size:14px}
+  .form-row,.form-row2,.form-row3,.form-row4{grid-template-columns:1fr;gap:10px}
 }
 
 /* COBROS FILTROS */

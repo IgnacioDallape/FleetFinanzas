@@ -554,6 +554,40 @@ body{
 }
 .footer-l,.footer-r{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
 
+/* ── RANKING DE CHOFERES ── */
+.chofer-ranking{
+  background:linear-gradient(135deg, rgba(43,184,154,0.06) 0%, rgba(43,184,154,0.02) 100%);
+  border:1px solid rgba(43,184,154,0.18);
+  border-radius:14px;padding:18px;margin-bottom:18px;
+}
+.cr-title{
+  font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--accent);margin-bottom:14px;
+}
+.cr-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;
+}
+.cr-card{
+  background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;
+  display:flex;flex-direction:column;gap:4px;
+  transition:transform .15s, border-color .15s;
+}
+.cr-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.cr-label{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+.cr-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.2}
+.cr-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--accent);margin-top:2px}
+.cr-sub{font-weight:400;font-size:10px;color:var(--muted);font-family:inherit}
+.cr-money .cr-value{color:#1a6b3a}
+.cr-margin .cr-value{color:#2BB89A}
+.cr-fuel .cr-value{color:#D4820A}
+.cr-km .cr-value{color:#1a5fa8}
+
+@media(max-width:600px){
+  .cr-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .cr-card{padding:10px}
+  .cr-value{font-size:12px}
+}
+
 /* ── ANIMATIONS ── */
 .fade-in{animation:fadeUp .4s cubic-bezier(.4,0,.2,1) both;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}

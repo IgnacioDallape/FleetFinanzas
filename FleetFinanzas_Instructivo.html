@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetFinanzas - Instructivo Completo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: white; }
+
+        .portada {
+            background: linear-gradient(135deg, #1a6b3a 0%, #2BB89A 100%);
+            color: white;
+            padding: 200px 40px;
+            text-align: center;
+            page-break-after: always;
+        }
+        .portada h1 { font-size: 48px; margin-bottom: 20px; }
+        .portada p { font-size: 18px; opacity: 0.9; margin: 10px 0; }
+
+        .page-break { page-break-after: always; }
+        .content { padding: 40px; }
+
+        h1 { color: #1a6b3a; font-size: 32px; margin: 40px 0 20px 0; border-bottom: 3px solid #1a6b3a; padding-bottom: 10px; }
+        h2 { color: #2BB89A; font-size: 18px; margin: 25px 0 15px 0; font-weight: 600; }
+        h3 { color: #555; font-size: 14px; margin: 15px 0 10px 0; font-weight: 600; }
+
+        p { margin: 10px 0; text-align: justify; }
+        ul { margin: 10px 0 10px 40px; }
+        li { margin: 8px 0; }
+
+        .highlight { background: #f0f8f5; padding: 15px; border-left: 4px solid #2BB89A; margin: 15px 0; }
+        .warning { background: #fff3cd; padding: 15px; border-left: 4px solid #D4820A; margin: 15px 0; }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th { background: #1a6b3a; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px 12px; border-bottom: 1px solid #ddd; }
+        tr:nth-child(even) { background: #f9f9f9; }
+
+        .toc { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .toc ul { margin-left: 20px; }
+        .toc li { color: #2BB89A; margin: 8px 0; }
+
+        @media print {
+            body { background: white; }
+            .container { max-width: 100%; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- PORTADA -->
+        <div class="portada">
+            <h1>FleetFinanzas</h1>
+            <p>Planificador de Transportes</p>
+            <div style="margin-top: 100px;">
+                <p style="font-size: 24px; margin-top: 80px;">Instructivo de Uso Completo</p>
+                <p style="margin-top: 40px; opacity: 0.8;">Última actualización: Abril 2026</p>
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- TABLA DE CONTENIDOS -->
+        <div class="content">
+            <h1>Tabla de Contenidos</h1>
+            <div class="toc">
+                <ul>
+                    <li>1. Introducción</li>
+                    <li>2. Login y Autenticación</li>
+                    <li>3. Flujo - Dashboard</li>
+                    <li>4. Flujo - Cobros</li>
+                    <li>5. Flujo - Pagos</li>
+                    <li>6. Flujo - Costos Fijos</li>
+                    <li>7. Flujo - YPF (Combustible)</li>
+                    <li>8. Flujo - Unidades (Camiones)</li>
+                    <li>9. Flujo - Flujo de Fondos</li>
+                    <li>10. FleetCost - Calculadora de Viajes</li>
+                    <li>11. FleetCost - Historial de Viajes</li>
+                    <li>12. Tips y Mejores Prácticas</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- SECCIONES -->
+        <div class="content">
+            <h1>1. Introducción</h1>
+            <p>FleetFinanzas es una plataforma integral para empresas de transporte de carga. Integra dos aplicaciones principales:</p>
+            <ul>
+                <li><strong>Flujo:</strong> Planificador financiero (cobros, pagos, flujo de caja, combustible)</li>
+                <li><strong>FleetCost:</strong> Calculadora de costos por viaje</li>
+            </ul>
+            <h2>Características</h2>
+            <ul>
+                <li>Gestión de cobros y pagos</li>
+                <li>Proyección automática de flujo de caja</li>
+                <li>Seguimiento de combustible YPF</li>
+                <li>Cálculo automático de rentabilidad por viaje</li>
+                <li>Historial de viajes persistente</li>
+                <li>Soporte multi-usuario</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>2. Login y Autenticación</h1>
+            <p>Acceso: <strong>https://fleet-finanzas.vercel.app/</strong></p>
+            <p>Al acceder a la plataforma, ingresá tu correo y contraseña. Si no tienes credenciales asignadas, contactá al administrador.</p>
+            <div class="highlight">
+                <strong>✓ Importante:</strong> Tilda "Recordar sesión por 30 días" para que tu sesión persista automáticamente sin tener que loguear cada vez que cierres el navegador.
+            </div>
+            <div class="warning">
+                <strong>⚠ Seguridad:</strong> Guarda tu contraseña de forma segura. No la compartas con nadie ni la guardes en documentos públicos. Cada usuario tiene acceso solo a sus propios datos.
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>3. Flujo - Dashboard</h1>
+            <p>Pantalla principal con resumen ejecutivo en tiempo real.</p>
+            <h2>Métricas</h2>
+            <ul>
+                <li><strong>Saldo disponible:</strong> dinero en caja</li>
+                <li><strong>Cobros pendientes:</strong> deudas de clientes</li>
+                <li><strong>Pagos vencidos:</strong> deudas pasadas de vencimiento</li>
+                <li><strong>Próximos pagos:</strong> próximos vencimientos</li>
+            </ul>
+            <h2>Secciones</h2>
+            <ul>
+                <li><strong>Gráfico Flujo Acumulado:</strong> evolución de saldo en tiempo</li>
+                <li><strong>Gráfico Pagos por Categoría:</strong> distribución de gastos</li>
+                <li><strong>¿Qué puedo pagar hoy?:</strong> recomendación de pagos (dos modos)</li>
+                <li><strong>Simulador de Cobros:</strong> drag & drop para simular cobros</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>4. Flujo - Cobros</h1>
+            <p>Registra facturas que emitiste a clientes.</p>
+            <h2>Campos</h2>
+            <ul>
+                <li>Nombre: cliente o descripción</li>
+                <li>Monto: valor facturado</li>
+                <li>Fecha: vencimiento</li>
+                <li>Tipo: forma de pago (Cheque, Transferencia, Efectivo, etc.)</li>
+                <li>Notas: información adicional</li>
+            </ul>
+            <h2>Opciones especiales</h2>
+            <ul>
+                <li><strong>Cheque:</strong> descuenta retenciones (2.1%)</li>
+                <li><strong>Transferencia:</strong> descuenta retención (1.5%)</li>
+                <li><strong>Efectivo:</strong> sin descuento</li>
+                <li><strong>Endoso:</strong> registra quién emitió el cheque original</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>5. Flujo - Pagos</h1>
+            <p>Registra todos los gastos y obligaciones de pago.</p>
+            <h2>Campos</h2>
+            <ul>
+                <li>Nombre: descripción del gasto</li>
+                <li>Monto: cuánto pagar</li>
+                <li>Fecha de vencimiento</li>
+                <li>Categoría: Impuestos, Tarjeta, Servicios, YPF, Otro</li>
+                <li>Prioridad: urgente, normal, flexible</li>
+            </ul>
+            <h2>Estados</h2>
+            <ul>
+                <li>Pendiente: aún no pagado</li>
+                <li>Pagado: ya realizaste el pago</li>
+                <li>Vencido: pasó la fecha (aparece en rojo)</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>6. Flujo - Costos Fijos</h1>
+            <p>Gastos recurrentes que se repiten periódicamente.</p>
+            <h2>Frecuencias</h2>
+            <ul>
+                <li>Diario, Semanal, Mensual, Bimestral, Trimestral, Anual</li>
+            </ul>
+            <div class="highlight">
+                <strong>Nota:</strong> La app normaliza todos a equivalente mensual para proyecciones precisas. Ej: costo anual $120,000 = $10,000 mensuales.
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>7. Flujo - YPF (Combustible)</h1>
+            <p>Seguimiento de cargas de combustible en cuenta YPF.</p>
+            <h2>Secciones</h2>
+            <ul>
+                <li><strong>Precio por Litro:</strong> ingresá el precio actual (se sincroniza a FleetCost automáticamente)</li>
+                <li><strong>Deuda YPF:</strong> saldo pendiente</li>
+                <li><strong>Choferes:</strong> lista de choferes autorizados</li>
+                <li><strong>Cargas:</strong> remito, chofer, fecha, litros, km, precio, importe</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>8. Flujo - Unidades (Camiones)</h1>
+            <p>Define perfil de costos de cada camión. FleetCost usa estos datos.</p>
+            <h2>Información por camión</h2>
+            <ul>
+                <li>Nombre de la unidad</li>
+                <li>Seguro mensual</li>
+                <li>Patente / impuestos anuales (÷12)</li>
+                <li>Mantenimiento mensual</li>
+                <li>Aceite y lubricantes</li>
+                <li>Cubiertas / neumáticos</li>
+                <li>Km mensuales base</li>
+                <li>Costo chofer / km</li>
+                <li>Precio por litro (sincroniza desde YPF)</li>
+                <li>Rendimiento (km/litro)</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>9. Flujo - Flujo de Fondos</h1>
+            <p>Vista calendárica de cobros y pagos con proyección de saldo.</p>
+            <ul>
+                <li>Muestra eventos financieros en calendario</li>
+                <li>Proyecta saldo mes a mes</li>
+                <li>Identifica "cuellos de botella" (falta de ingresos)</li>
+                <li>Permite planificar acciones preventivas</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>10. FleetCost - Calculadora de Viajes</h1>
+            <p>Calcula costo real de cada viaje y determina rentabilidad.</p>
+            <h2>Datos del viaje</h2>
+            <ul>
+                <li>Monto facturado: lo que cobrás</li>
+                <li>Monto cotizado (OPCIONAL): presupuesto para comparar</li>
+                <li>Kilómetros del viaje</li>
+                <li>Peajes</li>
+                <li>Chofer (nombre)</li>
+                <li>Litros cargados (consumo real)</li>
+                <li>Pago al chofer</li>
+            </ul>
+            <h2>¿Tiene retorno?</h2>
+            <p>Si el camión vuelve con carga, tilda y carga datos de regreso por separado.</p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>11. FleetCost - Resultados y Historial</h1>
+            <h2>Resultados del viaje</h2>
+            <ul>
+                <li><strong>Ganancia Neta:</strong> facturado - costos (verde si positivo, rojo si pérdida)</li>
+                <li><strong>Rentabilidad %:</strong> con indicador visual (verde ≥30%, naranja 15-29%, rojo <15%)</li>
+                <li><strong>Cotizado vs Facturado:</strong> comparación (si lo ingresaste)</li>
+                <li><strong>Precio Mínimo Sugerido:</strong> break-even, +20% (recomendado), +30% (óptimo)</li>
+                <li><strong>Desglose de Costos:</strong> línea por línea</li>
+                <li><strong>Control de Combustible:</strong> consumo real vs esperado</li>
+            </ul>
+            <h2>Historial</h2>
+            <ul>
+                <li>Visualiza por Mes o por Chofer</li>
+                <li>Click para expandir detalles</li>
+                <li>Botón ✏ para editar, 🗑 para eliminar</li>
+                <li>Resumen: viajes, km, facturado, ganancia, margen promedio</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="content">
+            <h1>12. Tips y Mejores Prácticas</h1>
+            <h2>En Flujo</h2>
+            <ul>
+                <li><strong>Actualiza diariamente:</strong> cobros y pagos cuando suceden</li>
+                <li><strong>Usa notas:</strong> contactos, referencias, detalles</li>
+                <li><strong>Revisa Flujo de Fondos mensualmente:</strong> detecta períodos riesgosos</li>
+                <li><strong>Mantén YPF actualizado:</strong> FleetCost lo lee automáticamente</li>
+            </ul>
+            <h2>En FleetCost</h2>
+            <ul>
+                <li><strong>Guarda todos los viajes:</strong> el historial es tu base de datos</li>
+                <li><strong>Usa Monto Cotizado:</strong> compara presupuesto vs realidad</li>
+                <li><strong>Monitorea consumo:</strong> alto = problemas mecánicos</li>
+                <li><strong>Revisa Precio Mínimo:</strong> úsalo para futuras cotizaciones</li>
+                <li><strong>Apunta a ≥30% rentabilidad:</strong> menos es riesgo de quiebra</li>
+            </ul>
+            <div class="highlight">
+                <strong>Meta:</strong> Mantén mínimo 30% de margen en tus viajes. Menos de 15% pone en riesgo la viabilidad del negocio.
+            </div>
+        </div>
+
+        <div class="page-break"></div>
+
+        <!-- PIE -->
+        <div class="content" style="text-align: center; padding: 100px 40px; color: #999;">
+            <p><strong>FleetFinanzas</strong></p>
+            <p>Planificador de Transportes</p>
+            <p style="margin-top: 50px; font-size: 12px;">
+                Acceso: https://fleet-finanzas.vercel.app/ <br>
+                © 2026 FleetFinanzas. Todos los derechos reservados.
+            </p>
+            <p style="margin-top: 30px; font-size: 11px; color: #bbb;">
+                Para generar PDF: Abrí este archivo en navegador → Ctrl+P → Guardar como PDF
+            </p>
+        </div>
+    </div>
+</body>
+</html>

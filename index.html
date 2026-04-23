@@ -178,6 +178,14 @@ if ('serviceWorker' in navigator) {
       <div class="nav-item" onclick="navigate('fleetcost',this);closeMobileMenu()"><span class="nav-icon">🚛</span>FleetCost</div>
       <div class="nav-item" onclick="navigate('unidades',this);closeMobileMenu()"><span class="nav-icon">⚙</span>Unidades</div>
     </div>
+
+    <!-- Acciones de cuenta (visibles en mobile, ocultas en desktop porque están en topbar) -->
+    <div class="nav-section nav-section-mobile">
+      <div class="nav-label">Cuenta</div>
+      <div class="nav-item" onclick="exportJSON();closeMobileMenu()"><span class="nav-icon">↓</span>Exportar backup</div>
+      <div class="nav-item" onclick="openChangePassword();closeMobileMenu()"><span class="nav-icon">🔑</span>Cambiar contraseña</div>
+      <div class="nav-item" onclick="doLogout()" style="color:var(--red)"><span class="nav-icon">⎋</span>Cerrar sesión</div>
+    </div>
   </nav>
 
   <main class="main">
