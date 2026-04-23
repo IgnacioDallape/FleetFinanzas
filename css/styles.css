@@ -429,5 +429,74 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 }
 .btn-secondary:hover{background:var(--bg3)}
 
+/* ── CHANGE PASSWORD MODAL ── */
+.cp-modal{max-width:440px}
+.cp-header{
+  padding:24px 24px 20px;display:flex;align-items:center;gap:14px;
+  border-bottom:1px solid var(--border);position:relative;
+}
+.cp-header-icon{
+  width:44px;height:44px;border-radius:12px;background:#e8f5ee;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent);
+}
+.cp-header-icon svg{width:22px;height:22px}
+.cp-title{font-size:17px;font-weight:600;color:var(--text)}
+.cp-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.cp-close{
+  position:absolute;top:14px;right:14px;background:none;border:none;
+  cursor:pointer;color:var(--muted);padding:5px;display:flex;
+  align-items:center;justify-content:center;border-radius:6px;
+  transition:background .15s,color .15s;
+}
+.cp-close:hover{background:var(--bg2);color:var(--text)}
+.cp-close svg{width:18px;height:18px}
+.cp-body{padding:20px 24px;display:flex;flex-direction:column}
+.cp-field{margin-bottom:16px}
+.cp-divider{height:1px;background:var(--border);margin:4px 0 16px}
+.cp-label{
+  display:block;font-size:11px;font-weight:600;color:var(--muted2);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;
+}
+.cp-input-wrap{
+  display:flex;align-items:center;gap:10px;
+  border:1.5px solid var(--border2);border-radius:8px;padding:0 12px;
+  background:var(--bg);transition:border-color .2s,background .2s;
+}
+.cp-input-wrap:focus-within{border-color:var(--accent);background:#fff}
+.cp-input-wrap svg{width:16px;height:16px;color:var(--muted);flex-shrink:0}
+.cp-input-wrap input{
+  flex:1;border:none;background:none;padding:11px 0;
+  font-size:14px;font-family:inherit;color:var(--text);outline:none;
+}
+.cp-input-wrap input::placeholder{color:var(--muted)}
+.cp-error{
+  display:flex;align-items:center;gap:8px;
+  background:#fef2f2;border:1px solid #fecaca;
+  border-radius:8px;padding:10px 14px;
+  color:#dc2626;font-size:13px;margin-top:4px;
+}
+.cp-error svg{width:16px;height:16px;flex-shrink:0}
+.cp-footer{
+  padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:10px;
+}
+.cp-btn-cancel{
+  background:var(--bg2);border:1px solid var(--border2);color:var(--muted2);
+  padding:10px 18px;border-radius:8px;font-size:13px;font-family:inherit;
+  cursor:pointer;transition:background .15s;
+}
+.cp-btn-cancel:hover{background:var(--bg3)}
+.cp-btn-confirm{
+  display:flex;align-items:center;gap:7px;
+  background:var(--accent);color:#fff;border:none;
+  padding:10px 20px;border-radius:8px;
+  font-size:13px;font-family:inherit;font-weight:600;
+  cursor:pointer;transition:opacity .15s,transform .1s;
+}
+.cp-btn-confirm:hover{opacity:.9}
+.cp-btn-confirm:active{transform:scale(.97)}
+.cp-btn-confirm:disabled{opacity:.55;cursor:not-allowed}
+.cp-btn-confirm svg{width:14px;height:14px}
+
 /* ── DASHBOARD SCALE ── */
 #page-dashboard{zoom:1.015}

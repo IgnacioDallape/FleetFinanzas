@@ -75,59 +75,41 @@ function doChangePassword() {
   const newPass  = document.getElementById('cp-new').value;
   const confirm  = document.getElementById('cp-confirm').value;
   const errEl    = document.getElementById('cp-error');
-  const btn      = document.querySelector('#change-password-modal .btn:not(.btn-secondary)');
+  const errTxt   = document.getElementById('cp-error-text');
+  const btn      = document.querySelector('#change-password-modal .cp-btn-confirm');
+
+  function showErr(msg) {
+    errTxt.textContent = msg;
+    errEl.style.display = 'flex';
+  }
 
   errEl.style.display = 'none';
 
-  if (!oldPass || !newPass || !confirm) {
-    errEl.textContent = 'Completá todos los campos';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (newPass !== confirm) {
-    errEl.textContent = 'Las nuevas contraseñas no coinciden';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (newPass.length < 4) {
-    errEl.textContent = 'La contraseña debe tener al menos 4 caracteres';
-    errEl.style.display = 'block';
-    return;
-  }
+  if (!oldPass || !newPass || !confirm) { showErr('Completá todos los campos'); return; }
+  if (newPass !== confirm)              { showErr('Las nuevas contraseñas no coinciden'); return; }
+  if (newPass.length < 4)              { showErr('La contraseña debe tener al menos 4 caracteres'); return; }
 
   const session = localStorage.getItem('fleet_session') || sessionStorage.getItem('fleet_session');
-  if (!session) {
-    errEl.textContent = 'Sesión expirada. Volvé a loguear.';
-    errEl.style.display = 'block';
-    return;
-  }
+  if (!session) { showErr('Sesión expirada. Volvé a loguear.'); return; }
 
   const sessionData = JSON.parse(session);
   const supabaseId  = sessionData.supabaseId;
-  if (!supabaseId) {
-    errEl.textContent = 'Sesión sin ID de Supabase. Cerrá sesión y volvé a entrar.';
-    errEl.style.display = 'block';
-    return;
-  }
+  if (!supabaseId) { showErr('Sesión sin ID de Supabase. Cerrá sesión y volvé a entrar.'); return; }
 
   btn.disabled = true;
-  btn.textContent = 'Cambiando...';
 
   supabaseChangePassword(supabaseId, oldPass, newPass).then(result => {
     btn.disabled = false;
-    btn.textContent = 'Cambiar contraseña';
 
     if (result.success) {
       closeChangePassword();
-      // Toast de éxito
       const toast = document.createElement('div');
       toast.textContent = '✓ Contraseña cambiada exitosamente';
       toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1a6b3a;color:white;padding:12px 20px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3500);
     } else {
-      errEl.textContent = result.error || 'Error al cambiar contraseña';
-      errEl.style.display = 'block';
+      showErr(result.error || 'Error al cambiar contraseña');
     }
   });
 }
