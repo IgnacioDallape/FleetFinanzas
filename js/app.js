@@ -1200,9 +1200,11 @@ function csChipHTML(c, inAcobrar) {
 function csDragStart(id, event) {
   csDragId = id;
   event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', id.toString());
 }
 function csDragOver(event) {
   event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
   event.currentTarget.classList.add('cs-drag-over');
 }
 function csDragLeave(event) {
