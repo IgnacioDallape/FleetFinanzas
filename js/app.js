@@ -12,24 +12,41 @@ function doLogin(e) {
   const pass     = document.getElementById('l-pass').value;
   const remember = document.getElementById('l-remember').checked;
   const errEl    = document.getElementById('login-error');
-  const match    = AUTH_USERS.find(u => u.user.toLowerCase() === user && u.pass === pass);
-  if (match) {
-    errEl.style.display = 'none';
-    const payload = JSON.stringify({ expiry: remember ? Date.now() + 30 * 864e5 : null, userId: match.id });
-    if (remember) localStorage.setItem(AUTH_KEY, payload);
-    else          sessionStorage.setItem(AUTH_KEY, payload);
-    // Always store userId in localStorage so iframes can read it regardless of sessionStorage isolation
-    localStorage.setItem('fleet_uid', match.id);
-    // Reload so app re-initialises with the correct storage keys for this user
-    window.location.reload();
-  } else {
-    errEl.style.display = 'block';
-    document.getElementById('l-pass').value = '';
-    document.getElementById('l-pass').focus();
-    const card = document.querySelector('.login-card');
-    card.style.animation = 'none';
-    requestAnimationFrame(() => { card.style.animation = 'loginShake .35s ease'; });
-  }
+  const btn      = document.querySelector('.login-btn');
+
+  // Deshabilitar botón mientras autentica
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  supabaseLogin(user, pass).then(result => {
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
+
+    if (result.success) {
+      errEl.style.display = 'none';
+      // storage_id mantiene compatibilidad con las claves de localStorage existentes
+      const payload = JSON.stringify({
+        expiry:      remember ? Date.now() + 30 * 864e5 : null,
+        userId:      result.storage_id,
+        supabaseId:  result.id,
+        email:       result.email,
+        fullName:    result.full_name
+      });
+      if (remember) localStorage.setItem(AUTH_KEY, payload);
+      else          sessionStorage.setItem(AUTH_KEY, payload);
+      localStorage.setItem('fleet_uid', result.storage_id);
+      window.location.reload();
+    } else {
+      errEl.textContent = result.error || 'Usuario o contraseña incorrectos';
+      errEl.style.display = 'block';
+      document.getElementById('l-pass').value = '';
+      document.getElementById('l-pass').focus();
+      const card = document.querySelector('.login-card');
+      card.style.animation = 'none';
+      requestAnimationFrame(() => { card.style.animation = 'loginShake .35s ease'; });
+    }
+  });
+
   return false;
 }
 
@@ -54,30 +71,30 @@ function closeChangePassword() {
 }
 
 function doChangePassword() {
-  const old = document.getElementById('cp-old').value;
-  const newPass = document.getElementById('cp-new').value;
-  const confirm = document.getElementById('cp-confirm').value;
-  const errEl = document.getElementById('cp-error');
+  const oldPass  = document.getElementById('cp-old').value;
+  const newPass  = document.getElementById('cp-new').value;
+  const confirm  = document.getElementById('cp-confirm').value;
+  const errEl    = document.getElementById('cp-error');
+  const btn      = document.querySelector('#change-password-modal .btn:not(.btn-secondary)');
 
-  if (!old || !newPass || !confirm) {
+  errEl.style.display = 'none';
+
+  if (!oldPass || !newPass || !confirm) {
     errEl.textContent = 'Completá todos los campos';
     errEl.style.display = 'block';
     return;
   }
-
   if (newPass !== confirm) {
     errEl.textContent = 'Las nuevas contraseñas no coinciden';
     errEl.style.display = 'block';
     return;
   }
-
   if (newPass.length < 4) {
-    errEl.textContent = 'La nueva contraseña debe tener al menos 4 caracteres';
+    errEl.textContent = 'La contraseña debe tener al menos 4 caracteres';
     errEl.style.display = 'block';
     return;
   }
 
-  // Verificar contraseña actual
   const session = localStorage.getItem('fleet_session') || sessionStorage.getItem('fleet_session');
   if (!session) {
     errEl.textContent = 'Sesión expirada. Volvé a loguear.';
@@ -85,28 +102,34 @@ function doChangePassword() {
     return;
   }
 
-  const data = JSON.parse(session);
-  const user = AUTH_USERS.find(u => u.id === data.userId);
-  if (!user || user.pass !== old) {
-    errEl.textContent = 'Contraseña actual incorrecta';
+  const sessionData = JSON.parse(session);
+  const supabaseId  = sessionData.supabaseId;
+  if (!supabaseId) {
+    errEl.textContent = 'Sesión sin ID de Supabase. Cerrá sesión y volvé a entrar.';
     errEl.style.display = 'block';
     return;
   }
 
-  // Cambiar contraseña (actualizar AUTH_USERS en memoria)
-  user.pass = newPass;
+  btn.disabled = true;
+  btn.textContent = 'Cambiando...';
 
-  // Actualizar sesión
-  data.pass = newPass;
-  if (localStorage.getItem('fleet_session')) {
-    localStorage.setItem('fleet_session', JSON.stringify(data));
-  } else {
-    sessionStorage.setItem('fleet_session', JSON.stringify(data));
-  }
+  supabaseChangePassword(supabaseId, oldPass, newPass).then(result => {
+    btn.disabled = false;
+    btn.textContent = 'Cambiar contraseña';
 
-  errEl.style.display = 'none';
-  alert('✓ Contraseña cambiada exitosamente');
-  closeChangePassword();
+    if (result.success) {
+      closeChangePassword();
+      // Toast de éxito
+      const toast = document.createElement('div');
+      toast.textContent = '✓ Contraseña cambiada exitosamente';
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1a6b3a;color:white;padding:12px 20px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+    } else {
+      errEl.textContent = result.error || 'Error al cambiar contraseña';
+      errEl.style.display = 'block';
+    }
+  });
 }
 
 // ── APP ───────────────────────────────────────────────
