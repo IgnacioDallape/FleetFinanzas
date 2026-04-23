@@ -308,7 +308,8 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 .nav-section-mobile{display:none}
 
 @media(max-width:768px){
-  .hamburger-btn{display:flex}
+  .hamburger-btn{display:flex;padding:10px;width:48px;height:48px;align-items:center;justify-content:center}
+  .hamburger-btn svg{width:24px;height:24px}
   .app{grid-template-columns:1fr}
   .sidebar{
     display:block;
@@ -332,9 +333,12 @@ select.form-input option{background:var(--bg3);color:var(--text)}
   .grid2,.grid3{grid-template-columns:1fr}
   .form-row2,.form-row3,.form-row4{grid-template-columns:1fr}
   .semana-grid{grid-template-columns:repeat(4,1fr)}
-  .topbar{padding:12px 14px}
+  .topbar{padding:10px 8px;min-height:56px;gap:6px}
+  .topbar > div:first-child{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+  .logo{font-size:16px}
   .topbar .saldo-pill .saldo-label{display:none}
-  .topbar .saldo-pill{padding:5px 10px;font-size:12px}
+  .topbar .saldo-pill{padding:6px 10px;font-size:12px;white-space:nowrap}
+  .notif-bell{width:44px;height:44px;padding:6px}
   /* En mobile, ocultar botones del topbar (están en sidebar) */
   .topbar-right > .btn{display:none}
   .page-header{margin-bottom:18px}
@@ -360,7 +364,10 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 
 @media(max-width:480px){
   .main{padding:14px 10px}
-  .topbar{padding:10px 12px;gap:8px}
+  .topbar{padding:8px 6px;min-height:52px;gap:4px}
+  .hamburger-btn{width:44px;height:44px;padding:8px}
+  .hamburger-btn svg{width:20px;height:20px}
+  .logo{font-size:14px}
   .saldo-pill{font-size:11px;padding:4px 8px}
   .metric-card{padding:10px}
   .metric-value{font-size:16px}
