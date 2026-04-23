@@ -26,7 +26,17 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW register fail:', err));
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      // Chequear updates cada 30 segundos
+      setInterval(() => reg.update(), 30000);
+      // Si hay update, recarga la página
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'activated') window.location.reload();
+        });
+      });
+    }).catch(err => console.warn('SW register fail:', err));
   });
 }
 </script>

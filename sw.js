@@ -1,5 +1,5 @@
 // FleetFinanzas Service Worker — network-first con fallback a cache
-const CACHE_VERSION = 'fleet-v2';
+const CACHE_VERSION = 'fleet-v4';
 const CORE_ASSETS = [
   '/',
   '/index.html',
