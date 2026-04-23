@@ -21,6 +21,35 @@
 </head>
 <body>
 
+<!-- CAMBIAR CONTRASEÑA -->
+<div id="change-password-modal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Cambiar contraseña</h2>
+      <button class="modal-close" onclick="closeChangePassword()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">Contraseña actual</label>
+        <input type="password" id="cp-old" placeholder="Tu contraseña actual">
+      </div>
+      <div class="field">
+        <label class="field-label">Nueva contraseña</label>
+        <input type="password" id="cp-new" placeholder="Nueva contraseña">
+      </div>
+      <div class="field">
+        <label class="field-label">Confirmar nueva contraseña</label>
+        <input type="password" id="cp-confirm" placeholder="Confirmar nueva contraseña">
+      </div>
+      <div id="cp-error" style="color:#E05A2B;font-size:12px;margin-top:10px;display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeChangePassword()">Cancelar</button>
+      <button class="btn" onclick="doChangePassword()">Cambiar contraseña</button>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN -->
 <div id="login-overlay" class="login-overlay">
   <div class="login-card">
@@ -64,6 +93,7 @@
         </div>
       </div>
       <button class="btn btn-sm" onclick="exportJSON()">↓ Exportar</button>
+      <button class="btn btn-sm" onclick="openChangePassword()" title="Cambiar contraseña">🔑 Contraseña</button>
       <button class="btn btn-sm" onclick="doLogout()" title="Cerrar sesión" style="opacity:.6;">⎋ Salir</button>
     </div>
   </header>

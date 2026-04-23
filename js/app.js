@@ -40,6 +40,75 @@ function doLogout() {
   window.location.reload();
 }
 
+function openChangePassword() {
+  document.getElementById('change-password-modal').style.display = 'flex';
+  document.getElementById('cp-old').focus();
+}
+
+function closeChangePassword() {
+  document.getElementById('change-password-modal').style.display = 'none';
+  document.getElementById('cp-old').value = '';
+  document.getElementById('cp-new').value = '';
+  document.getElementById('cp-confirm').value = '';
+  document.getElementById('cp-error').style.display = 'none';
+}
+
+function doChangePassword() {
+  const old = document.getElementById('cp-old').value;
+  const newPass = document.getElementById('cp-new').value;
+  const confirm = document.getElementById('cp-confirm').value;
+  const errEl = document.getElementById('cp-error');
+
+  if (!old || !newPass || !confirm) {
+    errEl.textContent = 'Completá todos los campos';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  if (newPass !== confirm) {
+    errEl.textContent = 'Las nuevas contraseñas no coinciden';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  if (newPass.length < 4) {
+    errEl.textContent = 'La nueva contraseña debe tener al menos 4 caracteres';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Verificar contraseña actual
+  const session = localStorage.getItem('fleet_session') || sessionStorage.getItem('fleet_session');
+  if (!session) {
+    errEl.textContent = 'Sesión expirada. Volvé a loguear.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const data = JSON.parse(session);
+  const user = AUTH_USERS.find(u => u.id === data.userId);
+  if (!user || user.pass !== old) {
+    errEl.textContent = 'Contraseña actual incorrecta';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Cambiar contraseña (actualizar AUTH_USERS en memoria)
+  user.pass = newPass;
+
+  // Actualizar sesión
+  data.pass = newPass;
+  if (localStorage.getItem('fleet_session')) {
+    localStorage.setItem('fleet_session', JSON.stringify(data));
+  } else {
+    sessionStorage.setItem('fleet_session', JSON.stringify(data));
+  }
+
+  errEl.style.display = 'none';
+  alert('✓ Contraseña cambiada exitosamente');
+  closeChangePassword();
+}
+
 // ── APP ───────────────────────────────────────────────
 const TODAY = new Date().toISOString().slice(0, 10);
 
