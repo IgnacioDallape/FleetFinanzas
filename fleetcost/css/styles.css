@@ -436,6 +436,9 @@ body{
   font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);
   display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;
 }
+.hgs-chofer{flex-direction:column;align-items:flex-end;gap:3px;}
+.hgs-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;}
+.hgs-stats{font-size:9.5px;opacity:.85;}
 .hgs-pos{color:var(--green);}
 .hgs-neg{color:var(--red);}
 .hg-chevron{color:var(--muted);display:flex;transition:transform .2s ease;}

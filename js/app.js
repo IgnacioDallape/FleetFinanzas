@@ -262,6 +262,20 @@ let semanaFiltro=null;
 let cobrosFiltro='todos';
 let cobrosHistorialOpen=false;
 
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('mobile-overlay');
+  const isOpen  = sidebar.classList.contains('mobile-open');
+  sidebar.classList.toggle('mobile-open', !isOpen);
+  if(overlay) overlay.classList.toggle('active', !isOpen);
+}
+function closeMobileMenu() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('mobile-overlay');
+  sidebar.classList.remove('mobile-open');
+  if(overlay) overlay.classList.remove('active');
+}
+
 function navigate(page,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -632,11 +646,17 @@ function renderCobros(){
       <td class="mono" style="font-size:12px${esCheque?';color:var(--amber)':''}">${esCheque?`<span title="+2 días hábiles">${fmtDate(acredita)} ⚑</span>`:fmtDate(acredita)}</td>
       <td>${tipoBadge}</td>
       <td>${montoCell}</td>
-      <td>${c.cobrado?'<span class="badge badge-green">Cobrado</span>':'<span class="badge badge-blue">Pendiente</span>'}</td>
+      <td>${c.cobrado
+          ? '<span class="badge badge-green">Cobrado</span>'
+          : (c.montoParcialCobrado > 0
+              ? `<span class="badge badge-amber" title="Cobrado ${fmt(c.montoParcialCobrado)} de ${fmt(c.monto)}">Parcial ${fmt(c.montoParcialCobrado)}</span>`
+              : '<span class="badge badge-blue">Pendiente</span>')
+        }</td>
       <td style="white-space:nowrap">
         ${c.tipo==='cheque' ? `
-          <button class="btn btn-sm btn-success" style="margin-right:4px" onclick="cobrarCheque(${c.id},'depositado')">↓ Dep.</button><button class="btn btn-sm" style="border-color:rgba(183,96,10,.3);color:var(--amber);margin-right:4px" onclick="cobrarEndosado(${c.id})">↔ End.</button>` 
-          : `<button class="btn btn-sm btn-success" style="margin-right:4px" onclick="toggleCobro(${c.id})">✓ Cobrado</button>`}
+          <button class="btn btn-sm btn-success" style="margin-right:4px" onclick="cobrarCheque(${c.id},'depositado')">↓ Dep.</button><button class="btn btn-sm" style="border-color:rgba(183,96,10,.3);color:var(--amber);margin-right:4px" onclick="cobrarEndosado(${c.id})">↔ End.</button>`
+          : `<button class="btn btn-sm btn-success" style="margin-right:4px" onclick="toggleCobro(${c.id})">✓ Cobrado</button>
+             <button class="btn btn-sm" style="border-color:rgba(183,96,10,.3);color:var(--amber);margin-right:4px" onclick="cobrarParcial(${c.id})">$ Parcial</button>`}
         <button class="btn btn-sm btn-icon btn-danger" onclick="delCobro(${c.id})">✕</button>
       </td>
     </tr>`;
@@ -830,6 +850,25 @@ function toggleCobro(id){
   save();renderCobros();
 }
 function delCobro(id){if(!confirm('¿Eliminar este cobro?'))return;data.cobros=data.cobros.filter(x=>x.id!==id);save();renderCobros();}
+
+function cobrarParcial(id) {
+  const c = data.cobros.find(x=>x.id===id);
+  if(!c) return;
+  const ya    = c.montoParcialCobrado || 0;
+  const pend  = c.monto - ya;
+  const s = prompt(`Cobro parcial — ${c.nombre}\nTotal: ${fmt(c.monto)}\nYa cobrado: ${fmt(ya)}\nPendiente: ${fmt(pend)}\n\nIngresá el monto a cobrar ahora:`);
+  if(s === null) return;
+  const monto = parseFloat(String(s).replace(/[.,\s]/g,'').replace(',','.')) || 0;
+  if(!monto || monto <= 0) return alert('Monto inválido');
+  if(monto > pend + 0.01) return alert(`El monto (${fmt(monto)}) supera lo pendiente (${fmt(pend)})`);
+  c.montoParcialCobrado = ya + monto;
+  data.disponible += monto;
+  if(c.montoParcialCobrado >= c.monto - 0.01) {
+    c.cobrado = true;
+    c.netoAcreditado = c.montoParcialCobrado;
+  }
+  save(); renderCobros();
+}
 
 // ── PAGOS ──────────────────────────────────────────────────
 function renderPagos(){
@@ -1336,6 +1375,23 @@ function renderFF() {
   const allEvents = [];
   data.cobros.filter(c=>!c.cobrado).forEach(c=>allEvents.push({fecha:fechaAcreditacion(c),monto:calcNetoIngreso(c),tipo:'cobro'}));
   data.pagos.filter(p=>!p.pagado).forEach(p=>allEvents.push({fecha:ffGetFechaPago(p),monto:-p.monto,tipo:'pago',id:p.id}));
+  // Costos fijos: generar fechas dentro del mes visible
+  (data.costosFijos||[]).forEach(c=>{
+    const dia = parseInt(c.diaDelMes)||0;
+    if(c.freq === 'semanal') {
+      // generar todas las ocurrencias del mes para ese día de semana
+      for(let d=1;d<=lastDay.getDate();d++){
+        const ds=`${ffYear}-${String(ffMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dow=new Date(ds+'T12:00:00').getDay();
+        if(String(dow)===String(c.dia)) allEvents.push({fecha:ds,monto:-c.monto,tipo:'cf',nombre:c.nombre});
+      }
+    } else if(dia) {
+      const maxD = lastDay.getDate();
+      const actualDia = Math.min(dia, maxD);
+      const ds=`${ffYear}-${String(ffMonth).padStart(2,'0')}-${String(actualDia).padStart(2,'0')}`;
+      allEvents.push({fecha:ds,monto:-c.monto,tipo:'cf',nombre:c.nombre});
+    }
+  });
   allEvents.sort((a,b)=>a.fecha.localeCompare(b.fecha));
 
   // pre-month events
@@ -1361,10 +1417,12 @@ function renderFF() {
   // Metrics
   const totalCobros = data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr)).reduce((a,c)=>a+calcNetoIngreso(c),0);
   const totalPagos  = data.pagos.filter(p=>!p.pagado&&ffGetFechaPago(p).startsWith(mesStr)).reduce((a,p)=>a+p.monto,0);
+  const totalCF     = allEvents.filter(e=>e.tipo==='cf'&&e.fecha.startsWith(mesStr)).reduce((a,e)=>a+Math.abs(e.monto),0);
   const saldoFinal  = Object.values(allDays).length ? Object.values(allDays)[Object.values(allDays).length-1].saldo : saldo;
   document.getElementById('ff-metrics').innerHTML = `
     <div class="metric-card blue"><div class="metric-label">Cobros del mes</div><div class="metric-value blue">${fmt(totalCobros)}</div></div>
     <div class="metric-card red"><div class="metric-label">Pagos del mes</div><div class="metric-value red">${fmt(totalPagos)}</div></div>
+    ${totalCF>0?`<div class="metric-card amber"><div class="metric-label">Costos fijos del mes</div><div class="metric-value amber">${fmt(totalCF)}</div></div>`:''}
     <div class="metric-card ${saldoFinal>=0?'green':'red'}"><div class="metric-label">Saldo fin de mes</div><div class="metric-value ${saldoFinal>=0?'green':'red'}">${fmt(saldoFinal)}</div></div>
   `;
 
@@ -1379,9 +1437,11 @@ function renderFF() {
     const isToday=ds===TODAY;
     const isNeg=info.saldo<0;
     const costosRec = cvGetCostosDelDia(ds);
+    const costosFijosD = cfGetDelDia(ds);
     const chips=[
       ...info.cobros.map(c=>`<div class="ff-chip cobro" draggable="false" title="${c.nombre}: ${fmt(calcNetoIngreso(c))}">↓ ${c.nombre.slice(0,10)}</div>`),
       ...costosRec.map(cv=>`<div class="ff-chip pago" draggable="false" style="opacity:.7" title="${cv.nombre}: ${fmt(cv.monto)} (recurrente)">↻ ${cv.nombre.slice(0,10)}</div>`),
+      ...costosFijosD.map(cf=>`<div class="ff-chip cf-fijo" draggable="false" title="${cf.nombre}: ${fmt(cf.monto)} (costo fijo)">■ ${cf.nombre.slice(0,10)}</div>`),
       ...info.pagos.map(p=>{
         const overdue=p.fecha<ds;
         return`<div class="ff-chip ${overdue?'pago-vencido':'pago'}" draggable="true" 
@@ -1707,21 +1767,46 @@ function cfAgregar() {
   const n = document.getElementById('cf-nombre').value.trim();
   const m = parseFloat(document.getElementById('cf-monto').value);
   if(!n||!m) return alert('Completá concepto y monto');
+  const freq = document.getElementById('cf-freq').value;
   data.costosFijos.push({
     id:Date.now(), nombre:n, monto:m,
     cat:  document.getElementById('cf-cat').value,
-    freq: document.getElementById('cf-freq').value,
-    dia:  document.getElementById('cf-dia').value,
+    freq,
+    dia:       document.getElementById('cf-dia').value,
+    diaDelMes: freq === 'semanal' ? 0 : (parseInt(document.getElementById('cf-dia-mes').value) || 0),
     notas:document.getElementById('cf-notas').value.trim()
   });
   save(); renderCF(); toggleForm('form-cf');
-  ['cf-nombre','cf-monto','cf-notas'].forEach(id=>document.getElementById(id).value='');
+  ['cf-nombre','cf-monto','cf-notas','cf-dia-mes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 }
 
 function cfEliminar(id) {
   if(!confirm('Eliminar este costo fijo?')) return;
   data.costosFijos = data.costosFijos.filter(c=>c.id!==id);
   save(); renderCF();
+}
+
+function cfFreqChange() {
+  const freq = document.getElementById('cf-freq').value;
+  const esSemanal = freq === 'semanal';
+  const diaWrap    = document.getElementById('cf-dia-wrap');
+  const diaMesWrap = document.getElementById('cf-dia-mes-wrap');
+  if(diaWrap)    diaWrap.style.display    = esSemanal ? '' : 'none';
+  if(diaMesWrap) diaMesWrap.style.display = esSemanal ? 'none' : '';
+}
+
+// Retorna los costos fijos que caen en una fecha dada
+function cfGetDelDia(fecha) {
+  if(!data.costosFijos) return [];
+  const dt  = new Date(fecha + 'T12:00:00');
+  const dow = dt.getDay();   // 0=Dom, 1=Lun...
+  const dom = dt.getDate();  // día del mes
+  return data.costosFijos.filter(c => {
+    if(c.freq === 'semanal') return String(dow) === String(c.dia);
+    const dia = parseInt(c.diaDelMes) || 0;
+    if(!dia) return false;
+    return dom === dia;
+  });
 }
 
 // ── COSTOS VARIOS ────────────────────────────────────────────
@@ -1805,7 +1890,29 @@ function cvGetCostosDelDia(fecha) {
 
 // ── CONFIG ──────────────────────────────────────────────────
 function saveSaldo(){const v=parseFloat(document.getElementById('conf-saldo').value);if(isNaN(v))return alert('Número inválido');data.disponible=v;save();alert('Saldo actualizado a '+fmt(v));}
-function exportJSON(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-'+TODAY+'.json';a.click();}
+function exportJSON(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-backup-'+TODAY+'.json';a.click();}
+
+function importJSON(){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const imported=JSON.parse(ev.target.result);
+        if(!confirm('¿Reemplazar todos los datos con el backup importado?\nEsta acción no se puede deshacer.')) return;
+        data=normalizeData(imported);
+        save();
+        alert('Backup importado correctamente');
+        location.reload();
+      }catch(err){ alert('Archivo inválido. Asegurate de usar un backup exportado desde esta app.'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 function resetData(){if(!confirm('¿Borrar TODOS los datos?'))return;localStorage.removeItem(STORAGE_KEY);location.reload();}
 
 // ── UNIDADES ──────────────────────────────────────────

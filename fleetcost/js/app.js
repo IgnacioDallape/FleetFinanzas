@@ -435,16 +435,45 @@ function histCardCompactHTML(v, n, showChofer) {
   </div>`;
 }
 
-function groupSummaryHTML(viajes) {
-  const totalFact = viajes.reduce((s, v) => s + (v.totalFacturado || v.facturado), 0);
-  const totalGan  = viajes.reduce((s, v) => s + v.ganancia, 0);
-  const totalKm   = viajes.reduce((s, v) => s + (v.totalKm || v.vkm), 0);
-  const isPos     = totalGan >= 0;
-  return `<div class="hist-group-summary">
-    <span>${viajes.length} viaje${viajes.length !== 1 ? 's' : ''}</span>
-    <span>· ${totalKm.toLocaleString('es-AR')} km</span>
-    <span>· ${fmtM(totalFact)} fact.</span>
-    <span class="${isPos ? 'hgs-pos' : 'hgs-neg'}">· ${isPos ? '+' : ''}${fmtM(totalGan)}</span>
+function groupSummaryHTML(viajes, isChofer) {
+  const totalFact  = viajes.reduce((s, v) => s + (v.totalFacturado || v.facturado), 0);
+  const totalGan   = viajes.reduce((s, v) => s + v.ganancia, 0);
+  const totalKm    = viajes.reduce((s, v) => s + (v.totalKm || v.vkm), 0);
+  const avgMargen  = viajes.reduce((s, v) => s + v.margen, 0) / viajes.length;
+  const isPos      = totalGan >= 0;
+
+  if (!isChofer) {
+    return `<div class="hist-group-summary">
+      <span>${viajes.length} viaje${viajes.length !== 1 ? 's' : ''}</span>
+      <span>· ${totalKm.toLocaleString('es-AR')} km</span>
+      <span>· ${fmtM(totalFact)} fact.</span>
+      <span class="${isPos ? 'hgs-pos' : 'hgs-neg'}">· ${isPos ? '+' : ''}${fmtM(totalGan)}</span>
+    </div>`;
+  }
+
+  // Vista por chofer: stats expandidas
+  const totalLitros = viajes.reduce((s, v) => s + (v.litros || 0), 0);
+  const viajesConLitros = viajes.filter(v => v.litros > 0 && v.totalKm > 0);
+  const consumoRealAvg = viajesConLitros.length
+    ? viajesConLitros.reduce((s, v) => s + (v.consumoReal ?? ((v.litros / (v.totalKm || v.vkm)) * 100)), 0) / viajesConLitros.length
+    : null;
+  const viajesPos  = viajes.filter(v => v.ganancia >= 0).length;
+  const viajesNeg  = viajes.length - viajesPos;
+  const margenColor = avgMargen >= 30 ? 'hgs-pos' : avgMargen >= 15 ? '' : 'hgs-neg';
+
+  return `<div class="hist-group-summary hgs-chofer">
+    <div class="hgs-row">
+      <span>${viajes.length} viaje${viajes.length !== 1 ? 's' : ''}</span>
+      <span>· ${totalKm.toLocaleString('es-AR')} km</span>
+      <span>· ${fmtM(totalFact)} facturado</span>
+      <span class="${isPos ? 'hgs-pos' : 'hgs-neg'}">· ${isPos ? '+' : ''}${fmtM(totalGan)} ganancia</span>
+    </div>
+    <div class="hgs-row hgs-stats">
+      <span class="${margenColor}">Margen prom: ${avgMargen.toFixed(1)}%</span>
+      ${totalLitros > 0 ? `<span>· ${totalLitros.toFixed(0)} L cargados</span>` : ''}
+      ${consumoRealAvg !== null ? `<span>· Consumo: ${consumoRealAvg.toFixed(1)} L/100km</span>` : ''}
+      ${viajesNeg > 0 ? `<span class="hgs-neg">· ${viajesNeg} viaje${viajesNeg > 1 ? 's' : ''} con pérdida</span>` : '<span class="hgs-pos">· Sin pérdidas</span>'}
+    </div>
   </div>`;
 }
 
@@ -494,7 +523,7 @@ function renderHistorial() {
             </div>
             <div class="hist-group-label">${label}</div>
           </div>
-          ${groupSummaryHTML(viajes)}
+          ${groupSummaryHTML(viajes, isChofer)}
         </div>
         <div id="hg-cards-${idx}" style="${open ? '' : 'display:none;'}">
           ${viajes.map(v => histCardCompactHTML(v, globalN--, false)).join('')}
@@ -510,7 +539,7 @@ function renderHistorial() {
             </div>
             <div class="hist-group-label">${label}</div>
           </div>
-          ${groupSummaryHTML(viajes)}
+          ${groupSummaryHTML(viajes, isChofer)}
         </div>
         <div id="hg-cards-${idx}" style="${open ? '' : 'display:none;'}">
           ${viajes.map(v => histCardCompactHTML(v, globalN--, true)).join('')}
