@@ -391,10 +391,10 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 
   /* FLUJO DE FONDOS RESPONSIVE */
   .ff-wrap{grid-template-columns:1fr !important;gap:12px}
-  .ff-calendar{display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:0}
+  #ff-cal-grid{grid-template-columns:repeat(4,1fr) !important}
   .ff-day{min-height:80px;padding:4px;font-size:10px}
   .ff-day:nth-child(4n){border-right:none}
-  .ff-day:nth-child(4n+1):nth-last-child(-n+4){border-right:1px solid var(--border)}
+  .ff-day:nth-child(4n+1){border-right:1px solid var(--border)}
   .ff-day-num{font-size:10px;margin-bottom:2px}
   .ff-day-saldo{font-size:9px;margin-bottom:2px}
   .ff-chip{font-size:9px;padding:1px 4px;margin:0px}
@@ -422,9 +422,10 @@ select.form-input option{background:var(--bg3);color:var(--text)}
   .form-row,.form-row2,.form-row3,.form-row4{grid-template-columns:1fr;gap:10px}
 
   /* FLUJO DE FONDOS 480px */
-  .ff-calendar{grid-template-columns:repeat(3,1fr) !important}
+  #ff-cal-grid{grid-template-columns:repeat(3,1fr) !important}
   .ff-day{min-height:70px;padding:3px;font-size:9px}
   .ff-day:nth-child(3n){border-right:none}
+  .ff-day:nth-child(3n+1){border-right:1px solid var(--border)}
   .ff-day-num{font-size:9px;margin-bottom:1px}
   .ff-day-saldo{font-size:8px;margin-bottom:1px}
   .ff-chip{font-size:8px;padding:1px 3px;margin:0px}
