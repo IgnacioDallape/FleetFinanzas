@@ -18,6 +18,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-si
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px;border:1px solid var(--bg3)}
 
+/* iOS PWA safe areas */
+@supports (padding: max(0px)) {
+  body { padding-left: max(0px, env(safe-area-inset-left)); padding-right: max(0px, env(safe-area-inset-right)); }
+  .topbar { padding-top: max(10px, env(safe-area-inset-top)); padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  .sidebar { padding-top: max(16px, env(safe-area-inset-top)); padding-left: max(0px, env(safe-area-inset-left)); }
+  .main { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+
 /* ── LOGIN ── */
 html:not(.is-authed) .app{display:none!important}
 html.is-authed #login-overlay{display:none!important}
