@@ -121,6 +121,8 @@ const TODAY = new Date().toISOString().slice(0, 10);
 const _authId    = window._authUserId || 'nacho';
 const STORAGE_KEY = _authId === 'nacho' ? 'flujo_v7' : 'flujo_v7_' + _authId;
 const UNITS_KEY   = _authId === 'nacho' ? 'fleetcost_unidades' : 'fleetcost_unidades_' + _authId;
+const FC_HIST_KEY = _authId === 'nacho' ? 'fleetcost_historial' : 'fleetcost_historial_' + _authId;
+const CLOUD_KEYS  = window.supabaseState?.keys || {};
 const fmt = v => '$\u00a0' + Math.round(v).toLocaleString('es-AR');
 const fmtDate = d => { if(!d) return ''; const p=d.split('-'); return p[2]+'/'+p[1]+'/'+p[0].slice(2); };
 const diffDays = d => Math.ceil((new Date(d)-new Date(TODAY))/86400000);
@@ -227,14 +229,59 @@ function emptyData(){
   };
 }
 
-let data=(() => {
-  try{
-    const d=localStorage.getItem(STORAGE_KEY);
-    if(d) return normalizeData(JSON.parse(d));
-    return _authId==='nacho' ? defaultData() : emptyData();
-  }catch(e){ return _authId==='nacho' ? defaultData() : emptyData(); }
-})();
-function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data));updateTopbar();}
+function fallbackData() {
+  return _authId === 'nacho' ? defaultData() : emptyData();
+}
+
+function readLocalData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return normalizeData(JSON.parse(raw));
+  } catch (e) {}
+  return fallbackData();
+}
+
+function writeLocalData(nextData) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(nextData));
+}
+
+function readLocalUnits() {
+  try { return JSON.parse(localStorage.getItem(UNITS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function writeLocalUnits(units) {
+  localStorage.setItem(UNITS_KEY, JSON.stringify(units));
+}
+
+function readLocalFleetCostHistorial() {
+  try { return JSON.parse(localStorage.getItem(FC_HIST_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function writeLocalFleetCostHistorial(items) {
+  localStorage.setItem(FC_HIST_KEY, JSON.stringify(items));
+}
+
+let data = readLocalData();
+let flujoSyncTimer = null;
+let unitsSyncTimer = null;
+
+function scheduleCloudSave(appKey, payloadFactory, timerName) {
+  if (!window.supabaseState || !appKey) return;
+  clearTimeout(timerName === 'flujo' ? flujoSyncTimer : unitsSyncTimer);
+  const timer = setTimeout(async () => {
+    await window.supabaseState.save(appKey, payloadFactory());
+  }, 500);
+  if (timerName === 'flujo') flujoSyncTimer = timer;
+  else unitsSyncTimer = timer;
+}
+
+function save(){
+  writeLocalData(data);
+  updateTopbar();
+  scheduleCloudSave(CLOUD_KEYS.flujo, () => data, 'flujo');
+}
 function updateTopbar(){document.getElementById('top-saldo').textContent=fmt(data.disponible);}
 
 // FLUJO CALC
@@ -1498,7 +1545,6 @@ function renderFF() {
     '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros este mes</div>';
 }
 
-let ffDragType = null; // 'pago' o 'cobro'
 function ffDragStart(event, id, tipo='pago') {
   ffDragId = id;
   ffDragType = tipo;
@@ -1525,6 +1571,7 @@ function ffDrop(event, fecha) {
     const p = data.pagos.find(x=>x.id===ffDragId);
     if(!p) return;
     p.fechaPago = fecha;
+  }
   save();
   renderFF();
 }
@@ -1903,7 +1950,8 @@ function cvGetCostosDelDia(fecha) {
 
 // ── CONFIG ──────────────────────────────────────────────────
 function saveSaldo(){const v=parseFloat(document.getElementById('conf-saldo').value);if(isNaN(v))return alert('Número inválido');data.disponible=v;save();alert('Saldo actualizado a '+fmt(v));}
-function exportJSON(){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-backup-'+TODAY+'.json';a.click();}
+function buildBackupPayload(){return{version:1,exportedAt:new Date().toISOString(),data,units:loadUnits(),fleetcostHistorial:readLocalFleetCostHistorial()};}
+function exportJSON(){const b=new Blob([JSON.stringify(buildBackupPayload(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flujo-backup-'+TODAY+'.json';a.click();}
 
 function importJSON(){
   const input=document.createElement('input');
@@ -2050,6 +2098,83 @@ function deleteUnit(id) {
   notifyFleetCostUnits();
 }
 
+function importJSON(){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const imported=JSON.parse(ev.target.result);
+        if(!confirm('Â¿Reemplazar todos los datos con el backup importado?\nEsta acciÃ³n no se puede deshacer.')) return;
+        data=normalizeData(imported.data||imported);
+        writeLocalUnits(Array.isArray(imported.units)?imported.units:[]);
+        writeLocalFleetCostHistorial(Array.isArray(imported.fleetcostHistorial)?imported.fleetcostHistorial:[]);
+        save();
+        scheduleCloudSave(CLOUD_KEYS.units,()=>loadUnits(),'units');
+        alert('Backup importado correctamente');
+        location.reload();
+      }catch(err){ alert('Archivo invÃ¡lido. Asegurate de usar un backup exportado desde esta app.'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+async function resetData(){if(!confirm('Â¿Borrar TODOS los datos?'))return;localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(UNITS_KEY);localStorage.removeItem(FC_HIST_KEY);if(window.supabaseState){await Promise.all([window.supabaseState.remove(CLOUD_KEYS.flujo),window.supabaseState.remove(CLOUD_KEYS.units),window.supabaseState.remove(CLOUD_KEYS.fleetcostHist)]);}location.reload();}
+
+function loadUnits() {
+  return readLocalUnits();
+}
+
+function saveUnits(units) {
+  writeLocalUnits(units);
+  scheduleCloudSave(CLOUD_KEYS.units,()=>units,'units');
+}
+
+function rerenderActivePage() {
+  const activePage = document.querySelector('.page.active')?.id || 'page-dashboard';
+  if (activePage === 'page-dashboard') renderDashboard();
+  if (activePage === 'page-semana') renderSemana();
+  if (activePage === 'page-cobros') renderCobros();
+  if (activePage === 'page-pagos') renderPagos();
+  if (activePage === 'page-flujo') renderFlujo();
+  if (activePage === 'page-simulador') renderSimulador();
+  if (activePage === 'page-flujo-fondos') renderFF();
+  if (activePage === 'page-ypf') renderYPF();
+  if (activePage === 'page-costos-fijos') renderCF();
+  if (activePage === 'page-costos') renderCostos();
+  if (activePage === 'page-unidades') renderUnidades();
+}
+
+async function hydrateFlujoCloudData() {
+  if (!window.supabaseState || !CLOUD_KEYS.flujo) return;
+  const remote = await window.supabaseState.load(CLOUD_KEYS.flujo);
+  if (remote.success && remote.data) {
+    data = normalizeData(remote.data);
+    writeLocalData(data);
+    return;
+  }
+  if (window.supabaseState.getUserId()) scheduleCloudSave(CLOUD_KEYS.flujo,()=>data,'flujo');
+}
+
+async function hydrateUnitsCloudData() {
+  if (!window.supabaseState || !CLOUD_KEYS.units) return;
+  const remote = await window.supabaseState.load(CLOUD_KEYS.units);
+  if (remote.success && Array.isArray(remote.data)) {
+    writeLocalUnits(remote.data);
+    return;
+  }
+  if (window.supabaseState.getUserId() && loadUnits().length) scheduleCloudSave(CLOUD_KEYS.units,()=>loadUnits(),'units');
+}
+
+async function initApp() {
+  await Promise.all([hydrateFlujoCloudData(), hydrateUnitsCloudData()]);
+  updateTopbar();
+  renderDashboard();
+  rerenderActivePage();
+}
+
 // INIT
-updateTopbar();
-renderDashboard();
+initApp();
