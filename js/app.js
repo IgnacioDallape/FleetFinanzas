@@ -11,7 +11,7 @@ function doLogin(e) {
   const pass     = document.getElementById('l-pass').value;
   const remember = document.getElementById('l-remember').checked;
   const errEl    = document.getElementById('login-error');
-  const match    = AUTH_USERS.find(u => u.user === user && u.pass === pass);
+  const match    = AUTH_USERS.find(u => u.user.toLowerCase() === user && u.pass === pass);
   if (match) {
     errEl.style.display = 'none';
     const payload = JSON.stringify({ expiry: remember ? Date.now() + 30 * 864e5 : null, userId: match.id });
