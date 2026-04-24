@@ -118,8 +118,18 @@ function doChangePassword() {
 const SUPABASE_URL = 'https://eqenqgrqvjithlayrezv.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Qom4VOOQvZiFqvSXmT8pmw_Y2gqm_7l';
 
-// Inicializar cliente de Supabase
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient = null;
+
+// Inicializar cliente de Supabase cuando esté disponible
+function initSupabase() {
+  try {
+    if (window.supabase && !supabaseClient) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+  } catch (err) {
+    console.warn('Supabase init error:', err);
+  }
+}
 
 // Estado de Supabase para sincronización cloud
 window.supabaseState = {
@@ -140,6 +150,9 @@ window.supabaseState = {
 
   async load(key) {
     try {
+      initSupabase();
+      if (!supabaseClient) return { success: false };
+
       const userId = this.getUserId();
       if (!userId) return { success: false };
 
@@ -167,6 +180,9 @@ window.supabaseState = {
 
   async save(key, payload) {
     try {
+      initSupabase();
+      if (!supabaseClient) return { success: false };
+
       const userId = this.getUserId();
       if (!userId) return { success: false };
 
@@ -202,6 +218,9 @@ window.supabaseState = {
 
   async remove(key) {
     try {
+      initSupabase();
+      if (!supabaseClient) return;
+
       const userId = this.getUserId();
       if (!userId) return;
 
