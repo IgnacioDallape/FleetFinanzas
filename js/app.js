@@ -1517,6 +1517,7 @@ let ffYear = parseInt(TODAY.slice(0,4));
 let ffMonth = parseInt(TODAY.slice(5,7));
 let ffDragId = null;
 let ffDragType = null; // 'pago' o 'cobro'
+let ffDragEstado = null; // 'calendar', 'depositado', 'efectuado', 'pendiente'
 let ffSelectedItem = null; // {type, id} para mobile selection
 let ffSelectionMode = false; // active selection mode en mobile
 
@@ -1558,11 +1559,7 @@ function renderFF() {
   const monthStart = mesStr+'-01';
   // apply all events before this month
   const allEvents = [];
-  data.cobros.filter(c=>!c.cobrado).forEach(c=>{
-    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
-    allEvents.push({fecha:displayFecha,monto:calcNetoIngreso(c),tipo:'cobro'});
-  });
-  data.pagos.filter(p=>!p.pagado).forEach(p=>allEvents.push({fecha:ffGetFechaPago(p),monto:-p.monto,tipo:'pago',id:p.id}));
+  // ONLY show costos fijos in calendar (no cobros/pagos)
   // Costos fijos: generar fechas dentro del mes visible
   (data.costosFijos||[]).forEach(c=>{
     const dia = parseInt(c.diaDelMes)||0;
@@ -1592,18 +1589,7 @@ function renderFF() {
     evs.forEach(e=>saldo+=e.monto);
     allDays[ds]={saldo,cobros:[],pagos:[]};
   }
-  // populate cobros/pagos per day
-  data.cobros.filter(c=>!c.cobrado).forEach(c=>{
-    // Use fechaColocada if set (calendar placement), otherwise use fechaAcreditacion
-    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
-    if(displayFecha.startsWith(mesStr) && allDays[displayFecha]) {
-      allDays[displayFecha].cobros.push(c);
-    }
-  });
-  data.pagos.filter(p=>!p.pagado&&ffGetFechaPago(p).startsWith(mesStr)).forEach(p=>{
-    const d=ffGetFechaPago(p);
-    if(allDays[d]) allDays[d].pagos.push(p);
-  });
+  // Calendar only shows costos fijos now - no cobros/pagos
 
   // Metrics
   const totalCobros = data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr)).reduce((a,c)=>a+calcNetoIngreso(c),0);
@@ -1642,19 +1628,10 @@ function renderFF() {
     const isNeg=info.saldo<0;
     const costosRec = cvGetCostosDelDia(ds);
     const costosFijosD = cfGetDelDia(ds);
+    // Only show costos fijos and recurrentes - no cobros/pagos
     const chips=[
-      ...info.cobros.map(c=>`<div class="ff-chip cobro" draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" title="${c.nombre}: ${fmt(calcNetoIngreso(c))}">↓ ${c.nombre.slice(0,10)}</div>`),
       ...costosRec.map(cv=>`<div class="ff-chip pago" draggable="false" style="opacity:.7" title="${cv.nombre}: ${fmt(cv.monto)} (recurrente)">↻ ${cv.nombre.slice(0,10)}</div>`),
-      ...costosFijosD.map(cf=>`<div class="ff-chip cf-fijo" draggable="false" title="${cf.nombre}: ${fmt(cf.monto)} (costo fijo)">■ ${cf.nombre.slice(0,10)}</div>`),
-      ...info.pagos.map(p=>{
-        const overdue=p.fecha<ds;
-        return`<div class="ff-chip ${overdue?'pago-vencido':'pago'}" draggable="true"
-          ondragstart="ffDragStart(event,${p.id})"
-          ondragend="ffDragEnd(event)"
-          title="${p.nombre}: ${fmt(p.monto)}${overdue?' ⚠ vence '+fmtDate(p.fecha):''}">
-          ↑ ${p.nombre.slice(0,10)}${overdue?' ⚑':''}
-        </div>`;
-      })
+      ...costosFijosD.map(cf=>`<div class="ff-chip cf-fijo" draggable="false" title="${cf.nombre}: ${fmt(cf.monto)} (costo fijo)">■ ${cf.nombre.slice(0,10)}</div>`)
     ].join('');
     cells+=`<div class="ff-day${isToday?' today':''}${isNeg?' negative':''}"
       ondragover="event.preventDefault();event.dataTransfer.dropEffect='move';this.classList.add('drag-over')"
@@ -1676,7 +1653,7 @@ function renderFF() {
   document.getElementById('ff-unscheduled').innerHTML = unsch.length ?
     unsch.sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(p=>`
       <div class="ff-unsch-chip" draggable="true"
-        ondragstart="ffDragStart(event,${p.id})"
+        ondragstart="ffDragStart(event,${p.id},'pago','calendar')"
         ondragend="ffDragEnd(event)">
         <div>
           <div class="ff-unsch-name">${p.nombre}</div>
@@ -1686,72 +1663,87 @@ function renderFF() {
       </div>`).join('') :
     '<div style="padding:8px;font-size:11px;color:var(--text3)">Todos los pagos están en el mes</div>';
 
-  // Cobros del mes en panel
-  const cobrosMes = data.cobros.filter(c=>!c.cobrado).filter(c=>{
-    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
-    return displayFecha.startsWith(mesStr);
-  });
-  document.getElementById('ff-cobros-mes').innerHTML = cobrosMes.length ?
-    cobrosMes.sort((a,b)=>{
-      const aFecha = a.fechaColocada || fechaAcreditacion(a);
-      const bFecha = b.fechaColocada || fechaAcreditacion(b);
-      return aFecha.localeCompare(bFecha);
-    }).map(c=>{
-      const displayFecha = c.fechaColocada || fechaAcreditacion(c);
-      return `<div draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab">
-        <div>
-          <div style="font-weight:500">${c.nombre}</div>
-          <div style="font-size:10px;color:var(--text3)">${fmtDate(displayFecha)} · ${c.tipo}</div>
-        </div>
-        <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
-      </div>`;
-    }).join('') :
-    '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros este mes</div>';
+  // CHEQUES DEPOSITADOS (BIDIRECTIONAL - draggable TO calendar to unmark as paid)
+  const chequesDeposit = data.cobros.filter(c=>c.cobrado && c.tipo==='cheque');
+  document.getElementById('ff-cheques-depositados').innerHTML = `
+    <div ondragover="event.preventDefault();event.dataTransfer.dropEffect='move'" ondrop="ffDropZone(event,'cheque','cobrado-true')">
+      ${chequesDeposit.length ?
+        chequesDeposit.map(c=>`
+          <div draggable="true" ondragstart="ffDragStart(event,${c.id},'cheque','depositado')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab;opacity:0.8">
+            <div>
+              <div style="font-weight:500">${c.nombre}</div>
+              <div style="font-size:10px;color:var(--text3)">Depositado</div>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
+          </div>
+        `).join('') :
+        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cheques depositados</div>
+      }
+    </div>
+  `;
 
-  // Cobros depositados
-  const cobrosDeposit = data.cobros.filter(c=>c.cobrado).filter(c=>{
-    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
-    return displayFecha.startsWith(mesStr);
-  });
-  document.getElementById('ff-cobros-depositados').innerHTML = cobrosDeposit.length ?
-    cobrosDeposit.sort((a,b)=>{
-      const aFecha = a.fechaColocada || fechaAcreditacion(a);
-      const bFecha = b.fechaColocada || fechaAcreditacion(b);
-      return aFecha.localeCompare(bFecha);
-    }).map(c=>{
-      const displayFecha = c.fechaColocada || fechaAcreditacion(c);
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;opacity:0.7">
-        <div>
-          <div style="font-weight:500">${c.nombre}</div>
-          <div style="font-size:10px;color:var(--text3)">${fmtDate(displayFecha)} · ${c.tipo}</div>
-        </div>
-        <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
-      </div>`;
-    }).join('') :
-    '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros depositados</div>';
+  // PAGOS EFECTUADOS (BIDIRECTIONAL - draggable TO calendar to unmark as paid)
+  const pagosEfectuados = data.pagos.filter(p=>p.pagado);
+  document.getElementById('ff-pagos-efectuados').innerHTML = `
+    <div ondragover="event.preventDefault();event.dataTransfer.dropEffect='move'" ondrop="ffDropZone(event,'pago','pagado-true')">
+      ${pagosEfectuados.length ?
+        pagosEfectuados.map(p=>`
+          <div draggable="true" ondragstart="ffDragStart(event,${p.id},'pago','efectuado')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab;opacity:0.8">
+            <div>
+              <div style="font-weight:500">${p.nombre}</div>
+              <div style="font-size:10px;color:var(--text3)">Efectuado · ${p.cat}</div>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--red)">-${fmt(p.monto)}</div>
+          </div>
+        `).join('') :
+        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos efectuados</div>
+      }
+    </div>
+  `;
 
-  // Pagos pagados
-  const pagosPagados = data.pagos.filter(p=>p.pagado).filter(p=>{
-    const fecha = ffGetFechaPago(p);
-    return fecha.startsWith(mesStr);
-  });
-  document.getElementById('ff-pagos-pagados').innerHTML = pagosPagados.length ?
-    pagosPagados.sort((a,b)=>ffGetFechaPago(a).localeCompare(ffGetFechaPago(b))).map(p=>{
-      const fecha = ffGetFechaPago(p);
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;opacity:0.7">
-        <div>
-          <div style="font-weight:500">${p.nombre}</div>
-          <div style="font-size:10px;color:var(--text3)">${fmtDate(fecha)} · ${p.cat}</div>
-        </div>
-        <div style="font-family:var(--font-mono);font-size:12px;color:var(--red)">-${fmt(p.monto)}</div>
-      </div>`;
-    }).join('') :
-    '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos realizados</div>';
+  // CHEQUES A COBRAR (draggable TO calendar to place)
+  const chequesACobrar = data.cobros.filter(c=>!c.cobrado && c.tipo==='cheque');
+  document.getElementById('ff-cheques-acobrar').innerHTML = `
+    <div ondragover="event.preventDefault();event.dataTransfer.dropEffect='move'" ondrop="ffDropZone(event,'cheque','cobrado-false')">
+      ${chequesACobrar.length ?
+        chequesACobrar.map(c=>`
+          <div draggable="true" ondragstart="ffDragStart(event,${c.id},'cheque','pendiente')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab">
+            <div>
+              <div style="font-weight:500">${c.nombre}</div>
+              <div style="font-size:10px;color:var(--text3)">A cobrar</div>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
+          </div>
+        `).join('') :
+        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cheques a cobrar</div>
+      }
+    </div>
+  `;
+
+  // PAGOS PENDIENTES (draggable TO marked-as-paid zone)
+  const pagosPendientes = data.pagos.filter(p=>!p.pagado);
+  document.getElementById('ff-pagos-pendientes').innerHTML = `
+    <div ondragover="event.preventDefault();event.dataTransfer.dropEffect='move'" ondrop="ffDropZone(event,'pago','pagado-false')">
+      ${pagosPendientes.length ?
+        pagosPendientes.map(p=>`
+          <div draggable="true" ondragstart="ffDragStart(event,${p.id},'pago','pendiente')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab">
+            <div>
+              <div style="font-weight:500">${p.nombre}</div>
+              <div style="font-size:10px;color:var(--text3)">Pendiente · ${p.cat}</div>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:12px;color:var(--red)">-${fmt(p.monto)}</div>
+          </div>
+        `).join('') :
+        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos pendientes</div>
+      }
+    </div>
+  `;
 }
 
-function ffDragStart(event, id, tipo='pago') {
+function ffDragStart(event, id, tipo='pago', estado='calendar') {
   ffDragId = id;
   ffDragType = tipo;
+  ffDragEstado = estado;
   event.dataTransfer.effectAllowed = 'move';
   event.dataTransfer.setData('text/plain', id.toString());
 }
@@ -1760,6 +1752,7 @@ function ffDragEnd(event) {
   document.querySelectorAll('.ff-day.drag-over').forEach(el=>el.classList.remove('drag-over'));
   ffDragId = null;
   ffDragType = null;
+  ffDragEstado = null;
 }
 
 function ffDrop(event, fecha) {
@@ -1777,6 +1770,34 @@ function ffDrop(event, fecha) {
     if(!p) return;
     p.fechaPago = fecha;
   }
+  save();
+  renderFF();
+}
+
+function ffDropZone(event, tipo, action) {
+  event.preventDefault();
+  if(ffDragId===null) return;
+
+  if(tipo === 'cheque') {
+    const c = data.cobros.find(x=>x.id===ffDragId);
+    if(!c) return;
+    // Handle cheque state changes
+    if(action === 'cobrado-true') {
+      c.cobrado = true;
+    } else if(action === 'cobrado-false') {
+      c.cobrado = false;
+    }
+  } else if(tipo === 'pago') {
+    const p = data.pagos.find(x=>x.id===ffDragId);
+    if(!p) return;
+    // Handle pago state changes
+    if(action === 'pagado-true') {
+      p.pagado = true;
+    } else if(action === 'pagado-false') {
+      p.pagado = false;
+    }
+  }
+
   save();
   renderFF();
 }
