@@ -416,6 +416,7 @@ function renderDashboard(){
   renderRecomendacion();
 
   renderCobrosSim();
+  renderPagosSim();
   updateNavBadge();
   renderCharts(flujo);
   // Update CF total
@@ -518,8 +519,34 @@ function recDrop(e,targetId){
 
 function renderCharts(flujo){
   if(chartFlujo){chartFlujo.destroy();chartFlujo=null;}
-  const labels=flujo.map(f=>fmtDate(f.fecha));
-  const saldos=flujo.map(f=>f.saldo);
+
+  // Group by week on mobile, daily on desktop
+  let labels, saldos;
+  if(window.innerWidth < 768) {
+    // Group flujo by week
+    const byWeek = {};
+    flujo.forEach(f => {
+      const d = new Date(f.fecha+'T12:00:00');
+      const dow = d.getDay()===0 ? 6 : d.getDay()-1;
+      const weekStart = new Date(d);
+      weekStart.setDate(d.getDate()-dow);
+      const weekKey = weekStart.toISOString().slice(0,10);
+      if(!byWeek[weekKey] || f.saldo > byWeek[weekKey].saldo) {
+        byWeek[weekKey] = {fecha: weekStart.toISOString().slice(0,10), saldo: f.saldo};
+      }
+    });
+    const weeks = Object.values(byWeek).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    labels = weeks.map(w=>{
+      const d = new Date(w.fecha+'T12:00:00');
+      const until = new Date(d);
+      until.setDate(d.getDate()+6);
+      return fmtDate(w.fecha)+' - '+fmtDate(until.toISOString().slice(0,10)).split('/').pop();
+    });
+    saldos = weeks.map(w=>w.saldo);
+  } else {
+    labels = flujo.map(f=>fmtDate(f.fecha));
+    saldos = flujo.map(f=>f.saldo);
+  }
   chartFlujo=new Chart(document.getElementById('chart-flujo'),{
     type:'bar',
     data:{labels,datasets:[{label:'Saldo',data:saldos,backgroundColor:saldos.map(s=>s>=0?'rgba(26,107,58,0.75)':'rgba(192,57,43,0.75)'),borderRadius:4,borderSkipped:false}]},
@@ -1206,6 +1233,85 @@ let cheqSeleccionados = new Set(); // cobro ids seleccionados
 let cobrosSimSelected = new Set();
 let csDragId = null;
 
+// Pagos Simulator
+let pagosSimSelected = new Set();
+let psDragId = null;
+
+function renderPagosSim() {
+  const all = data.pagos.filter(p => !p.pagado)
+    .sort((a,b) => a.fecha.localeCompare(b.fecha));
+  // Remove ids that no longer exist
+  pagosSimSelected = new Set([...pagosSimSelected].filter(id => all.find(p => p.id === id)));
+
+  const apagar  = all.filter(p =>  pagosSimSelected.has(p.id));
+  const pending = all.filter(p => !pagosSimSelected.has(p.id));
+  const total   = apagar.reduce((s,p) => s + p.monto, 0);
+
+  const totEl = document.getElementById('ps-total');
+  const totH  = document.getElementById('ps-total-header');
+  if (totEl) totEl.textContent = fmt(total);
+  if (totH)  totH.textContent  = total > 0 ? fmt(total) : '';
+
+  const apEl    = document.getElementById('ps-apagar-list');
+  const apEmpty = document.getElementById('ps-apagar-empty');
+  const pendEl  = document.getElementById('ps-pendientes-list');
+  const pendH   = document.getElementById('ps-pendientes-header');
+
+  if (apEl) {
+    apEl.innerHTML = apagar.length ? apagar.map(p => `
+      <div draggable="true" ondragstart="psDragStart(event,${p.id})" ondragend="psDragEnd(event)"
+        style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--accent-dim);border-radius:8px;margin-bottom:8px;cursor:grab">
+        <div style="flex:1">
+          <div style="font-weight:500;font-size:13px">${p.nombre}</div>
+          <div style="font-size:11px;color:var(--text3)">${fmtDate(p.fecha)} · ${p.cat}</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text);flex-shrink:0">${fmt(p.monto)}</div>
+        <button onclick="psToggle(${p.id})" style="background:var(--accent);color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✓ Pagar</button>
+      </div>
+    `).join('') : '<div style="padding:12px;font-size:11px;color:var(--text3);text-align:center">Sin pagos simulados</div>';
+  }
+
+  if (apEmpty) apEmpty.style.display = apagar.length ? 'none' : 'block';
+
+  if (pendEl) {
+    pendEl.innerHTML = pending.length ? pending.map(p => `
+      <div draggable="true" ondragstart="psDragStart(event,${p.id})" ondragend="psDragEnd(event)"
+        onclick="psToggle(${p.id})"
+        style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:grab;font-size:12px">
+        <div>
+          <div style="font-weight:500">${p.nombre}</div>
+          <div style="font-size:10px;color:var(--text3)">${fmtDate(p.fecha)} · ${p.cat}</div>
+        </div>
+        <div style="font-family:var(--font-mono);color:var(--red)">${fmt(p.monto)}</div>
+      </div>
+    `).join('') : '<div style="padding:10px;font-size:11px;color:var(--text3);text-align:center">✓ Sin pagos pendientes</div>';
+  }
+  if (pendH) pendH.textContent = pending.length ? `${pending.length} pendiente${pending.length!==1?'s':''}` : '';
+}
+
+function psToggle(id) {
+  if (pagosSimSelected.has(id)) pagosSimSelected.delete(id);
+  else pagosSimSelected.add(id);
+  renderPagosSim();
+  renderRecomendacion();
+}
+
+function psDragStart(event, id) {
+  psDragId = id;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', id.toString());
+}
+
+function psDragEnd(event) {
+  psDragId = null;
+}
+
+function psDropTo(zone, event) {
+  event.preventDefault();
+  if (psDragId === null) return;
+  psToggle(psDragId);
+}
+
 function renderCobrosSim() {
   const all = data.cobros.filter(c => !c.cobrado)
     .sort((a,b) => fechaAcreditacion(a).localeCompare(fechaAcreditacion(b)));
@@ -1275,6 +1381,12 @@ function cobrosSimReset() {
   cobrosSimSelected = new Set();
   recUseCobros = false;
   renderCobrosSim();
+  renderRecomendacion();
+}
+
+function pagosSimReset() {
+  pagosSimSelected = new Set();
+  renderPagosSim();
   renderRecomendacion();
 }
 
