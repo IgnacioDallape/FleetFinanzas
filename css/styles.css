@@ -422,6 +422,7 @@ select.form-input option{background:var(--bg3);color:var(--text)}
   .form-row,.form-row2,.form-row3,.form-row4{grid-template-columns:1fr;gap:10px}
 
   /* FLUJO DE FONDOS 480px (3 columns) - MOBILE */
+  .ff-calendar > div:first-child{display:none}
   #ff-cal-grid{grid-template-columns:repeat(3,1fr) !important}
   .ff-day{min-height:60px;padding:3px;font-size:8px}
   .ff-day:nth-child(3n){border-right:none}
@@ -430,8 +431,6 @@ select.form-input option{background:var(--bg3);color:var(--text)}
   .ff-day-saldo{font-size:7px;margin-bottom:1px}
   .ff-chip{font-size:7px;padding:1px 2px;margin:1px 0;width:100%}
   .ff-unsch-chip{font-size:9px;padding:4px 5px;margin-bottom:3px}
-  /* Mobile: mostrar toggle de modo selección */
-  .ff-selection-toggle{display:block}
 }
 
 /* COBROS FILTROS */

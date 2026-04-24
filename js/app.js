@@ -1408,28 +1408,10 @@ function renderFF() {
   const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   document.getElementById('ff-mes-label').textContent = MESES[ffMonth-1]+' '+ffYear;
 
-  // Show/hide mobile selection button
-  const toggleBtn = document.getElementById('ff-toggle-select-btn');
-  const isMobile = isMobileView();
-  if(toggleBtn) {
-    toggleBtn.style.display = isMobile ? 'inline-block' : 'none';
-    if(isMobile) {
-      toggleBtn.textContent = ffSelectionMode ? '✓ Modo selección activo' : 'Seleccionar (móvil)';
-      toggleBtn.style.background = ffSelectionMode ? 'var(--accent)' : '';
-      toggleBtn.style.color = ffSelectionMode ? '#fff' : '';
-    }
-  }
-
-  // Update page subtitle based on mobile mode
+  // Update page subtitle
   const subtitle = document.getElementById('ff-page-sub');
   if(subtitle) {
-    if(isMobile) {
-      subtitle.textContent = ffSelectionMode
-        ? 'Click en un cobro/pago → luego click en otro día'
-        : 'Presiona "Seleccionar" para mover items en mobile';
-    } else {
-      subtitle.textContent = 'Arrastrá los pagos y cobros al día que planificás';
-    }
+    subtitle.textContent = 'Arrastrá los pagos y cobros al día que planificás';
   }
 
   const mesStr = ffYear+'-'+(ffMonth<10?'0':'')+ffMonth;
@@ -1514,7 +1496,7 @@ function renderFF() {
     const costosRec = cvGetCostosDelDia(ds);
     const costosFijosD = cfGetDelDia(ds);
     const chips=[
-      ...info.cobros.map(c=>`<div class="ff-chip cobro" draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" onclick="ffHandleChipClick(event,${c.id},'cobro','${ds}')" title="${c.nombre}: ${fmt(calcNetoIngreso(c))}">↓ ${c.nombre.slice(0,10)}</div>`),
+      ...info.cobros.map(c=>`<div class="ff-chip cobro" draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" title="${c.nombre}: ${fmt(calcNetoIngreso(c))}">↓ ${c.nombre.slice(0,10)}</div>`),
       ...costosRec.map(cv=>`<div class="ff-chip pago" draggable="false" style="opacity:.7" title="${cv.nombre}: ${fmt(cv.monto)} (recurrente)">↻ ${cv.nombre.slice(0,10)}</div>`),
       ...costosFijosD.map(cf=>`<div class="ff-chip cf-fijo" draggable="false" title="${cf.nombre}: ${fmt(cf.monto)} (costo fijo)">■ ${cf.nombre.slice(0,10)}</div>`),
       ...info.pagos.map(p=>{
@@ -1522,7 +1504,6 @@ function renderFF() {
         return`<div class="ff-chip ${overdue?'pago-vencido':'pago'}" draggable="true"
           ondragstart="ffDragStart(event,${p.id})"
           ondragend="ffDragEnd(event)"
-          onclick="ffHandleChipClick(event,${p.id},'pago','${ds}')"
           title="${p.nombre}: ${fmt(p.monto)}${overdue?' ⚠ vence '+fmtDate(p.fecha):''}">
           ↑ ${p.nombre.slice(0,10)}${overdue?' ⚑':''}
         </div>`;
