@@ -1577,6 +1577,22 @@ function renderFF() {
       allEvents.push({fecha:ds,monto:-c.monto,tipo:'cf',nombre:c.nombre});
     }
   });
+
+  // Add cobros with assigned dates (fechaColocada)
+  (data.cobros||[]).forEach(c=>{
+    if(c.fechaColocada) {
+      const neto = calcNetoIngreso(c);
+      allEvents.push({fecha:c.fechaColocada,monto:neto,tipo:'cobro',nombre:c.nombre,id:c.id});
+    }
+  });
+
+  // Add pagos with assigned dates (fechaPago)
+  (data.pagos||[]).forEach(p=>{
+    if(p.fechaPago) {
+      allEvents.push({fecha:p.fechaPago,monto:-p.monto,tipo:'pago',nombre:p.nombre,id:p.id});
+    }
+  });
+
   allEvents.sort((a,b)=>a.fecha.localeCompare(b.fecha));
 
   // pre-month events
@@ -1628,10 +1644,15 @@ function renderFF() {
     const isNeg=info.saldo<0;
     const costosRec = cvGetCostosDelDia(ds);
     const costosFijosD = cfGetDelDia(ds);
-    // Only show costos fijos and recurrentes - no cobros/pagos
+    // Get cobros/pagos with assigned dates
+    const chequesDelDia = (data.cobros||[]).filter(c=>c.fechaColocada===ds && c.tipo==='cheque');
+    const pagosDelDia = (data.pagos||[]).filter(p=>p.fechaPago===ds);
+
     const chips=[
       ...costosRec.map(cv=>`<div class="ff-chip pago" draggable="false" style="opacity:.7" title="${cv.nombre}: ${fmt(cv.monto)} (recurrente)">↻ ${cv.nombre.slice(0,10)}</div>`),
-      ...costosFijosD.map(cf=>`<div class="ff-chip cf-fijo" draggable="false" title="${cf.nombre}: ${fmt(cf.monto)} (costo fijo)">■ ${cf.nombre.slice(0,10)}</div>`)
+      ...costosFijosD.map(cf=>`<div class="ff-chip cf-fijo" draggable="false" title="${cf.nombre}: ${fmt(cf.monto)} (costo fijo)">■ ${cf.nombre.slice(0,10)}</div>`),
+      ...chequesDelDia.map(c=>`<div class="ff-chip cobro" draggable="true" ondragstart="ffDragStart(event,${c.id},'cheque','calendar')" ondragend="ffDragEnd(event)" title="${c.nombre}: ${fmt(calcNetoIngreso(c))} (cheque)">↓ ${c.nombre.slice(0,10)}</div>`),
+      ...pagosDelDia.map(p=>`<div class="ff-chip pago" draggable="true" ondragstart="ffDragStart(event,${p.id},'pago','calendar')" ondragend="ffDragEnd(event)" title="${p.nombre}: ${fmt(p.monto)} (pago)">↑ ${p.nombre.slice(0,10)}</div>`)
     ].join('');
     cells+=`<div class="ff-day${isToday?' today':''}${isNeg?' negative':''}"
       ondragover="event.preventDefault();event.dataTransfer.dropEffect='move';this.classList.add('drag-over')"
