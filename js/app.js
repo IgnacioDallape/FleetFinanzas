@@ -1595,6 +1595,19 @@ function renderFF() {
     <div class="metric-card ${saldoFinal>=0?'green':'red'}"><div class="metric-label">Saldo fin de mes</div><div class="metric-value ${saldoFinal>=0?'green':'red'}">${fmt(saldoFinal)}</div></div>
   `;
 
+  // Calendar header - show month/year on mobile, days on desktop
+  const calendar = document.querySelector('.ff-calendar > div:first-child');
+  if(calendar) {
+    if(window.innerWidth < 480) {
+      calendar.innerHTML = `<div style="padding:12px;text-align:center;font-size:13px;font-weight:500;color:var(--text);text-transform:uppercase;letter-spacing:.06em;grid-column:1/-1">${MESES[ffMonth-1]} ${ffYear}</div>`;
+      calendar.style.display = 'grid';
+      calendar.style.gridTemplateColumns = '1fr';
+    } else {
+      calendar.style.display = 'grid';
+      calendar.style.gridTemplateColumns = 'repeat(7,1fr)';
+    }
+  }
+
   // Calendar grid
   const grid = document.getElementById('ff-cal-grid');
   let cells = '';
