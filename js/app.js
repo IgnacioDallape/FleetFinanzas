@@ -1238,6 +1238,7 @@ let csDragId = null;
 // Pagos Simulator
 let pagosSimSelected = new Set();
 let psDragId = null;
+let psDragging = false;
 
 function renderPagosSim() {
   const all = data.pagos.filter(p => !p.pagado)
@@ -1262,13 +1263,14 @@ function renderPagosSim() {
   if (apEl) {
     apEl.innerHTML = apagar.length ? apagar.map(p => `
       <div draggable="true" ondragstart="psDragStart(event,${p.id})" ondragend="psDragEnd(event)"
-        style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--accent-dim);border-radius:8px;margin-bottom:8px;cursor:grab">
+        onclick="psHandleClick(event,${p.id})"
+        style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--accent-dim);border-radius:8px;margin-bottom:8px;cursor:grab;user-select:none">
         <div style="flex:1">
           <div style="font-weight:500;font-size:13px">${p.nombre}</div>
           <div style="font-size:11px;color:var(--text3)">${fmtDate(p.fecha)} · ${p.cat}</div>
         </div>
         <div style="font-family:var(--font-mono);font-size:12px;color:var(--text);flex-shrink:0">${fmt(p.monto)}</div>
-        <button onclick="psToggle(${p.id})" style="background:var(--accent);color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✓ Pagar</button>
+        <button onclick="event.stopPropagation();psToggle(${p.id})" style="background:var(--accent);color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer">✓ Quitar</button>
       </div>
     `).join('') : '<div style="padding:12px;font-size:11px;color:var(--text3);text-align:center">Sin pagos simulados</div>';
   }
@@ -1278,8 +1280,8 @@ function renderPagosSim() {
   if (pendEl) {
     pendEl.innerHTML = pending.length ? pending.map(p => `
       <div draggable="true" ondragstart="psDragStart(event,${p.id})" ondragend="psDragEnd(event)"
-        onclick="psToggle(${p.id})"
-        style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:grab;font-size:12px">
+        onclick="psHandleClick(event,${p.id})"
+        style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:grab;font-size:12px;user-select:none">
         <div>
           <div style="font-weight:500">${p.nombre}</div>
           <div style="font-size:10px;color:var(--text3)">${fmtDate(p.fecha)} · ${p.cat}</div>
@@ -1291,6 +1293,14 @@ function renderPagosSim() {
   if (pendH) pendH.textContent = pending.length ? `${pending.length} pendiente${pending.length!==1?'s':''}` : '';
 }
 
+function psHandleClick(event, id) {
+  // Only toggle if not dragging (on desktop, click should only work on mobile)
+  if(window.innerWidth < 480 || !psDragging) {
+    psToggle(id);
+  }
+  psDragging = false;
+}
+
 function psToggle(id) {
   if (pagosSimSelected.has(id)) pagosSimSelected.delete(id);
   else pagosSimSelected.add(id);
@@ -1300,11 +1310,13 @@ function psToggle(id) {
 
 function psDragStart(event, id) {
   psDragId = id;
+  psDragging = true;
   event.dataTransfer.effectAllowed = 'move';
   event.dataTransfer.setData('text/plain', id.toString());
 }
 
 function psDragEnd(event) {
+  psDragging = false;
   psDragId = null;
 }
 
