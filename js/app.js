@@ -290,7 +290,9 @@ function calcFlujo(){
   data.cobros.filter(c=>!c.cobrado).forEach(c=>{
     const neto=calcNetoIngreso(c);
     const ret=c.tipo==='cheque'?' (cheque)':c.tipo==='transferencia'?' (transfer)':'';
-    ev.push({fecha:fechaAcreditacion(c),concepto:c.nombre+ret,tipo:'cobro',monto:neto,bruto:c.monto});
+    // Use fechaColocada if set (calendar placement), otherwise use fechaAcreditacion
+    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
+    ev.push({fecha:displayFecha,concepto:c.nombre+ret,tipo:'cobro',monto:neto,bruto:c.monto});
   });
   data.pagos.filter(p=>!p.pagado).forEach(p=>ev.push({fecha:p.fecha,concepto:p.nombre,tipo:'pago',monto:-p.monto}));
   ev.sort((a,b)=>a.fecha.localeCompare(b.fecha));
@@ -1542,7 +1544,10 @@ function renderFF() {
   const monthStart = mesStr+'-01';
   // apply all events before this month
   const allEvents = [];
-  data.cobros.filter(c=>!c.cobrado).forEach(c=>allEvents.push({fecha:fechaAcreditacion(c),monto:calcNetoIngreso(c),tipo:'cobro'}));
+  data.cobros.filter(c=>!c.cobrado).forEach(c=>{
+    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
+    allEvents.push({fecha:displayFecha,monto:calcNetoIngreso(c),tipo:'cobro'});
+  });
   data.pagos.filter(p=>!p.pagado).forEach(p=>allEvents.push({fecha:ffGetFechaPago(p),monto:-p.monto,tipo:'pago',id:p.id}));
   // Costos fijos: generar fechas dentro del mes visible
   (data.costosFijos||[]).forEach(c=>{
@@ -1574,9 +1579,12 @@ function renderFF() {
     allDays[ds]={saldo,cobros:[],pagos:[]};
   }
   // populate cobros/pagos per day
-  data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr)).forEach(c=>{
-    const d=fechaAcreditacion(c);
-    if(allDays[d]) allDays[d].cobros.push(c);
+  data.cobros.filter(c=>!c.cobrado).forEach(c=>{
+    // Use fechaColocada if set (calendar placement), otherwise use fechaAcreditacion
+    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
+    if(displayFecha.startsWith(mesStr) && allDays[displayFecha]) {
+      allDays[displayFecha].cobros.push(c);
+    }
   });
   data.pagos.filter(p=>!p.pagado&&ffGetFechaPago(p).startsWith(mesStr)).forEach(p=>{
     const d=ffGetFechaPago(p);
@@ -1665,16 +1673,25 @@ function renderFF() {
     '<div style="padding:8px;font-size:11px;color:var(--text3)">Todos los pagos están en el mes</div>';
 
   // Cobros del mes en panel
-  const cobrosMes = data.cobros.filter(c=>!c.cobrado&&fechaAcreditacion(c).startsWith(mesStr));
+  const cobrosMes = data.cobros.filter(c=>!c.cobrado).filter(c=>{
+    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
+    return displayFecha.startsWith(mesStr);
+  });
   document.getElementById('ff-cobros-mes').innerHTML = cobrosMes.length ?
-    cobrosMes.sort((a,b)=>fechaAcreditacion(a).localeCompare(fechaAcreditacion(b))).map(c=>`
-      <div draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab">
+    cobrosMes.sort((a,b)=>{
+      const aFecha = a.fechaColocada || fechaAcreditacion(a);
+      const bFecha = b.fechaColocada || fechaAcreditacion(b);
+      return aFecha.localeCompare(bFecha);
+    }).map(c=>{
+      const displayFecha = c.fechaColocada || fechaAcreditacion(c);
+      return `<div draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;cursor:grab">
         <div>
           <div style="font-weight:500">${c.nombre}</div>
-          <div style="font-size:10px;color:var(--text3)">${fmtDate(fechaAcreditacion(c))} · ${c.tipo}</div>
+          <div style="font-size:10px;color:var(--text3)">${fmtDate(displayFecha)} · ${c.tipo}</div>
         </div>
         <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
-      </div>`).join('') :
+      </div>`;
+    }).join('') :
     '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros este mes</div>';
 }
 
@@ -1699,7 +1716,8 @@ function ffDrop(event, fecha) {
   if(ffDragType === 'cobro') {
     const c = data.cobros.find(x=>x.id===ffDragId);
     if(!c) return;
-    c.fecha = fecha;
+    // Store the calendar placement date - this is where user wants to see it
+    c.fechaColocada = fecha;
   } else {
     const p = data.pagos.find(x=>x.id===ffDragId);
     if(!p) return;
