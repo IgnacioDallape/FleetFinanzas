@@ -2008,7 +2008,6 @@ function ypfRender(){
     <div class="metric-card red"><div class="metric-label">Gasto este mes</div><div class="metric-value red">${fmt(importeMes)}</div></div>
     <div class="metric-card ${consumoMes?'amber':'blue'}"><div class="metric-label">C/100km este mes</div><div class="metric-value ${consumoMes?'amber':'blue'}">${consumoMes?consumoMes.toFixed(1)+' L':'—'}</div><div class="metric-sub">${consumoTotal?'Histórico: '+consumoTotal.toFixed(1)+' L/100km':''}</div></div>
     <div class="metric-card green"><div class="metric-label">Precio actual</div><div class="metric-value green">${fmt(precio)}<span style="font-size:12px;font-weight:400">/L</span></div></div>
-    <div class="metric-card ${deuda>0?'red':'blue'}"><div class="metric-label">Deuda YPF</div><div class="metric-value ${deuda>0?'red':'blue'}">${fmt(deuda)}</div><div class="metric-sub">${deuda>0?'pendiente':'sin deuda registrada'}</div></div>
   `;
 
   document.getElementById('ypf-tbody').innerHTML = cargas.length ? cargas.map(c=>{
