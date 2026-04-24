@@ -4,8 +4,7 @@
     {
       "name": "fleetcost",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "."],
-      "port": 3000,
+      "runtimeArgs": ["serve", "-l", "tcp://localhost:${PORT}", "."],
       "autoPort": true
     }
   ]

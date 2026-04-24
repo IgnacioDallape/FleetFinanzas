@@ -115,8 +115,8 @@ function doChangePassword() {
 }
 
 // ── SUPABASE ───────────────────────────────────────────
-const SUPABASE_URL = 'https://eqenqgrqvjithlayrezv.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Qom4VOOQvZiFqvSXmT8pmw_Y2gqm_7l';
+// Constants are defined in supabase-config.js
+// Note: SUPABASE_URL and SUPABASE_ANON_KEY are already declared there
 
 let supabaseClient = null;
 
