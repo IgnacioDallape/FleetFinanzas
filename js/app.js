@@ -2653,24 +2653,45 @@ function rerenderActivePage() {
 }
 
 async function hydrateFlujoCloudData() {
-  if (!window.supabaseState || !CLOUD_KEYS.flujo) return;
-  const remote = await window.supabaseState.load(CLOUD_KEYS.flujo);
-  if (remote.success && remote.data) {
-    data = normalizeData(remote.data);
-    writeLocalData(data);
-    return;
+  // Try to load from Supabase first
+  if (window.supabaseState && CLOUD_KEYS.flujo) {
+    const remote = await window.supabaseState.load(CLOUD_KEYS.flujo);
+    if (remote.success && remote.data) {
+      data = normalizeData(remote.data);
+      writeLocalData(data);
+      return;
+    }
   }
-  if (window.supabaseState.getUserId()) scheduleCloudSave(CLOUD_KEYS.flujo,()=>data,'flujo');
+
+  // Fallback to localStorage if Supabase doesn't have data
+  const localData = readLocalData();
+  if (localData) {
+    data = localData;
+    // If logged in, save to Supabase
+    if (window.supabaseState && window.supabaseState.getUserId()) {
+      scheduleCloudSave(CLOUD_KEYS.flujo,()=>data,'flujo');
+    }
+  }
 }
 
 async function hydrateUnitsCloudData() {
-  if (!window.supabaseState || !CLOUD_KEYS.units) return;
-  const remote = await window.supabaseState.load(CLOUD_KEYS.units);
-  if (remote.success && Array.isArray(remote.data)) {
-    writeLocalUnits(remote.data);
-    return;
+  // Try to load from Supabase first
+  if (window.supabaseState && CLOUD_KEYS.units) {
+    const remote = await window.supabaseState.load(CLOUD_KEYS.units);
+    if (remote.success && Array.isArray(remote.data)) {
+      writeLocalUnits(remote.data);
+      return;
+    }
   }
-  if (window.supabaseState.getUserId() && loadUnits().length) scheduleCloudSave(CLOUD_KEYS.units,()=>loadUnits(),'units');
+
+  // Fallback to localStorage if Supabase doesn't have data
+  const localUnits = readLocalUnits();
+  if (localUnits && localUnits.length) {
+    // If logged in, save to Supabase
+    if (window.supabaseState && window.supabaseState.getUserId()) {
+      scheduleCloudSave(CLOUD_KEYS.units,()=>loadUnits(),'units');
+    }
+  }
 }
 
 async function initApp() {
