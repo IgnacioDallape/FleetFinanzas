@@ -389,14 +389,15 @@ select.form-input option{background:var(--bg3);color:var(--text)}
   /* Logo más chico */
   .logo{font-size:18px}
 
-  /* FLUJO DE FONDOS RESPONSIVE */
+  /* FLUJO DE FONDOS RESPONSIVE - TABLET 768px (4 columns) */
   .ff-wrap{grid-template-columns:1fr !important;gap:12px}
-  #ff-cal-grid{grid-template-columns:repeat(7,1fr) !important}
-  .ff-day{min-height:60px;padding:3px;font-size:9px}
-  .ff-day:nth-child(7n){border-right:none}
-  .ff-day-num{font-size:9px;margin-bottom:1px}
-  .ff-day-saldo{font-size:8px;margin-bottom:1px}
-  .ff-chip{font-size:8px;padding:0px 2px;margin:0px;width:100%}
+  #ff-cal-grid{grid-template-columns:repeat(4,1fr) !important}
+  .ff-day{min-height:70px;padding:4px;font-size:9px}
+  .ff-day:nth-child(4n){border-right:none}
+  .ff-day:nth-child(7n){border-right:1px solid var(--border)}
+  .ff-day-num{font-size:9px;margin-bottom:2px}
+  .ff-day-saldo{font-size:8px;margin-bottom:2px}
+  .ff-chip{font-size:8px;padding:1px 3px;margin:1px 0;width:100%}
   .ff-unsch-chip{font-size:10px;padding:5px 6px;margin-bottom:4px}
 }
 
@@ -420,14 +421,17 @@ select.form-input option{background:var(--bg3);color:var(--text)}
   .nav-item{padding:11px 12px;font-size:14px}
   .form-row,.form-row2,.form-row3,.form-row4{grid-template-columns:1fr;gap:10px}
 
-  /* FLUJO DE FONDOS 480px */
-  #ff-cal-grid{grid-template-columns:repeat(7,1fr) !important}
-  .ff-day{min-height:50px;padding:2px;font-size:8px}
-  .ff-day:nth-child(7n){border-right:none}
-  .ff-day-num{font-size:8px;margin-bottom:0px}
-  .ff-day-saldo{font-size:7px;margin-bottom:0px}
-  .ff-chip{font-size:7px;padding:0px;margin:0px;width:100%}
+  /* FLUJO DE FONDOS 480px (3 columns) - MOBILE */
+  #ff-cal-grid{grid-template-columns:repeat(3,1fr) !important}
+  .ff-day{min-height:60px;padding:3px;font-size:8px}
+  .ff-day:nth-child(3n){border-right:none}
+  .ff-day:nth-child(7n){border-right:1px solid var(--border)}
+  .ff-day-num{font-size:8px;margin-bottom:1px}
+  .ff-day-saldo{font-size:7px;margin-bottom:1px}
+  .ff-chip{font-size:7px;padding:1px 2px;margin:1px 0;width:100%}
   .ff-unsch-chip{font-size:9px;padding:4px 5px;margin-bottom:3px}
+  /* Mobile: mostrar toggle de modo selección */
+  .ff-selection-toggle{display:block}
 }
 
 /* COBROS FILTROS */
@@ -460,6 +464,13 @@ select.form-input option{background:var(--bg3);color:var(--text)}
 .ff-unsch-name{flex:1;font-size:11px;color:var(--text)}
 .ff-unsch-monto{font-family:var(--font-mono);font-size:11px;color:var(--red);flex-shrink:0}
 .ff-unsch-vto{font-size:9px;color:var(--text3)}
+
+/* FLUJO DE FONDOS - MOBILE SELECTION MODE */
+.ff-selection-mode .ff-chip{cursor:pointer}
+.ff-chip.selected{outline:2px solid var(--accent);outline-offset:1px;opacity:.8}
+.ff-day.selection-mode-active{background:var(--accent-dim)}
+.ff-selection-info{display:none;padding:8px 12px;background:var(--accent-dim);border-radius:8px;margin-bottom:8px;font-size:12px;color:var(--accent);}
+.ff-selection-info.show{display:block}
 
 /* ── UNIDADES ── */
 .unit-form-wrap{margin-bottom:20px;}

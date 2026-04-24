@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructivo FleetFinanzas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f4f0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a6b3a;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        h2 {
+            color: #2BB89A;
+            font-size: 1.6em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2BB89A;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #1a6b3a;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        strong {
+            color: #1a6b3a;
+        }
+        .section {
+            page-break-inside: avoid;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 0.9em;
+            color: #999;
+        }
+        .intro {
+            background: #f0f8f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2BB89A;
+        }
+        .tip {
+            background: #fffef5;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border-left: 3px solid #2BB89A;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 40px;
+                max-width: 100%;
+            }
+            h1 { page-break-after: avoid; }
+            h2 { page-break-after: avoid; }
+            h3 { page-break-after: avoid; }
+            p { orphans: 3; widows: 3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>INSTRUCTIVO FLEETFINANZAS</h1>
+        <p class="subtitle">Guía de uso para gestor de finanzas y costos de flota</p>
+
+        <div class="intro">
+            <h2 style="border: none; margin-top: 0; color: #1a6b3a;">INTRODUCCIÓN</h2>
+            <p>
+                FleetFinanzas es una plataforma integral para la gestión financiera y operativa de una empresa de logística y transporte.
+                Combina dos herramientas principales:
+            </p>
+            <ul>
+                <li><strong>Flujo</strong> — Para la planificación financiera general: cobros, pagos, proyecciones de saldo.</li>
+                <li><strong>FleetCost</strong> — Para el cálculo de costos por viaje y análisis de rentabilidad.</li>
+            </ul>
+        </div>
+
+        <h2>SECCIÓN 1: FLUJO (Planificación Financiera)</h2>
+
+        <div class="section">
+            <h3>1.1 Dashboard (Pantalla Principal)</h3>
+            <p>Al ingresar a la aplicación, la pantalla principal muestra un resumen completo de la situación financiera:</p>
+            <ul>
+                <li><strong>Métricas de saldo:</strong> Efectivo disponible en caja, cobros pendientes, pagos vencidos y proximales.</li>
+                <li><strong>Gráficos:</strong> Flujo de fondos acumulado (evolución del saldo en el tiempo) y distribución de pagos por categoría.</li>
+                <li><strong>Recomendador:</strong> Indica qué pagos pueden realizarse con el efectivo disponible actual.</li>
+                <li><strong>Simulador de cobros:</strong> Permite simular el impacto de cobrar determinados clientes (arrastra cobros de la lista a "A cobrar").</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>1.2 Cobros (Receivables)</h3>
+            <p>Registra dinero que la empresa espera recibir de clientes o terceros:</p>
+            <ul>
+                <li><strong>Nombre:</strong> Identificación del cliente o concepto de cobro.</li>
+                <li><strong>Monto:</strong> Cantidad a cobrar en pesos.</li>
+                <li><strong>Fecha:</strong> Cuándo se espera recibir el dinero.</li>
+                <li><strong>Tipo:</strong> Forma de cobro (cheque, transferencia, efectivo).</li>
+                <li><strong>Estado:</strong> Pendiente, Parcialmente cobrado, o Cobrado.</li>
+                <li><strong>Retenciones:</strong> Se aplican automáticamente según el tipo de cobro (cheques: -2.1%, transferencias: -1.5%, efectivo: sin descuento).</li>
+            </ul>
+            <p class="tip">
+                <strong>💡 Nota:</strong> Se pueden endosar cheques (transferirlos a terceros). Al marcar un cobro como "Cobrado",
+                el dinero se suma automáticamente al disponible.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>1.3 Pagos (Payables)</h3>
+            <p>Registra gastos y obligaciones de pago de la empresa:</p>
+            <ul>
+                <li><strong>Nombre:</strong> Proveedor o concepto de gasto.</li>
+                <li><strong>Monto:</strong> Cantidad a pagar en pesos.</li>
+                <li><strong>Fecha:</strong> Cuándo vence el pago.</li>
+                <li><strong>Categoría:</strong> Tipo de gasto (combustible, proveedores, salarios, servicios, etc.).</li>
+                <li><strong>Prioridad:</strong> Alta/Normal/Baja (el recomendador prioriza pagos de mayor urgencia).</li>
+                <li><strong>Estado:</strong> Pendiente o Pagado.</li>
+            </ul>
+            <p class="tip">
+                <strong>💡 Recomendador:</strong> Prioriza pagos vencidos (con fecha pasada) y aquellos marcados como "Alta" prioridad.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>1.4 Costos Fijos</h3>
+            <p>Gastos recurrentes automáticos de la empresa (seguros, mantenimiento, servicios, alquileres):</p>
+            <ul>
+                <li><strong>Nombre:</strong> Descripción del gasto fijo.</li>
+                <li><strong>Monto:</strong> Cantidad del gasto en pesos.</li>
+                <li><strong>Frecuencia:</strong> Cada cuánto ocurre (Diario, Semanal, Quincenal, Mensual).</li>
+                <li><strong>Categoría:</strong> Clasificación del gasto (útil para análisis).</li>
+                <li><strong>Día del ciclo:</strong> En qué día (del mes, semana, etc.) ocurre el gasto.</li>
+            </ul>
+            <p class="tip">
+                <strong>💡 En el flujo de fondos:</strong> Los costos fijos se incluyen automáticamente en la proyección del saldo,
+                mostrando cuándo ocurrirán futuros gastos.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>1.5 YPF (Gestión de Combustible)</h3>
+            <p>Módulo centralizado para controlar el combustible por chofer:</p>
+            <ul>
+                <li><strong>Choferes:</strong> Registra quién carga combustible.</li>
+                <li><strong>Cargas:</strong> Detalle de cada carga (precio por litro, litros cargados, km recorridos, remito, fecha).</li>
+                <li><strong>Deuda acumulada:</strong> Dinero adeudado por combustible cargado.</li>
+                <li><strong>Análisis:</strong> Permite ver consumo por chofer y detectar anomalías (ej: bajo rendimiento de un vehículo).</li>
+            </ul>
+            <p class="tip">
+                <strong>💡 Rentabilidad:</strong> Usa estos datos para ajustar el precio de flete según consumos reales y mercado.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>1.6 Unidades (Perfiles de Camiones)</h3>
+            <p>Configura los costos específicos de cada vehículo de la flota:</p>
+            <ul>
+                <li><strong>Nombre/Patente:</strong> Identificación única del camión.</li>
+                <li><strong>Seguro, Mantenimiento, Aceite, Cubiertas:</strong> Gastos mensuales del vehículo.</li>
+                <li><strong>Km base, Costo por km (chofer), Precio combustible:</strong> Parámetros para cálculos de rentabilidad.</li>
+            </ul>
+            <p class="tip">
+                <strong>💡 Sincronización con FleetCost:</strong> Estos datos se importan automáticamente en la sección FleetCost
+                para calcular costos exactos por viaje.
+            </p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h2>SECCIÓN 2: FLEETCOST (Calculadora de Viajes)</h2>
+
+        <div class="section">
+            <h3>2.1 Calculadora de Costos Base</h3>
+            <p>Define los costos operativos fijos que se aplican a todos los viajes:</p>
+            <ul>
+                <li><strong>Costos Indirectos (Mensual):</strong> Gastos administrativos, alquiler de oficina, servicios generales.</li>
+                <li><strong>Costo Chofer (por km):</strong> Lo que cuesta por kilómetro cada chofer (tarifa base).</li>
+                <li><strong>Combustible (Precio por litro):</strong> Precio vigente del combustible (diesel/nafta).</li>
+            </ul>
+            <p>
+                Estos valores se convierten automáticamente a <strong>costo por km</strong> y se muestran en la barra de costos
+                al realizar cálculos de viajes.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>2.2 Selector de Unidades</h3>
+            <p>
+                Si están configuradas unidades en Flujo, aparece un dropdown (menú desplegable) para seleccionar un camión específico.
+                Al seleccionar una unidad:
+            </p>
+            <ul>
+                <li>Se cargan automáticamente todos sus costos de operación.</li>
+                <li>Los campos de combustible, chofer y km se precargan con los valores de esa unidad.</li>
+                <li>Los cálculos son más precisos por ser específicos del vehículo.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>2.3 Simulador de Viajes</h3>
+            <p>Calcula la rentabilidad de cada viaje o flete. Ingresa:</p>
+            <ul>
+                <li><strong>Viáticos (km):</strong> Kilómetros viajados en ida (distancia principal del viaje).</li>
+                <li><strong>Retorno:</strong> Marca si hay retorno sin carga (agrega km sin generar ingresos).</li>
+                <li><strong>Ingresos del viaje:</strong> Flete, fletes adicionales (cascos, retornos), dinero total que se cobra.</li>
+                <li><strong>Peajes:</strong> Gastos en rutas de peaje.</li>
+                <li><strong>Combustible:</strong> Litros reales cargados en este viaje (si hay datos concretos).</li>
+                <li><strong>Pago chofer:</strong> Pago directo al chofer (opcional, si es distinto a la tarifa fija por km).</li>
+                <li><strong>Descripción, Cliente, Chofer:</strong> Datos informativos para el seguimiento.</li>
+            </ul>
+            <p class="tip">
+                <strong>Resultado del viaje:</strong> Ganancia bruta (en pesos), margen porcentual (%), y rentabilidad por km.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>2.4 Historial de Viajes</h3>
+            <p>Muestra todos los viajes registrados con dos vistas de agrupación:</p>
+            <ul>
+                <li><strong>Por mes:</strong> Agrupa viajes por período (mes/año) para análisis mensuales de rentabilidad.</li>
+                <li><strong>Por chofer:</strong> Agrupa viajes por conductor, mostrando rankings de desempeño:
+                    <ul>
+                        <li>🏆 <strong>Más generó:</strong> Quién produjo más ingresos totales.</li>
+                        <li>📊 <strong>Mejor margen:</strong> Quién tuvo el mejor porcentaje de rentabilidad (30%+ es bueno).</li>
+                        <li>⛽ <strong>Mejor consumo:</strong> Quién logró menor consumo de combustible (L/100km).</li>
+                        <li>🛣️ <strong>Más kilómetros:</strong> Quién recorrió la mayor distancia.</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="tip">
+                <strong>Acciones:</strong> Se pueden editar viajes (vuelven al simulador) o limpiar todos los datos del historial.
+            </p>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h2>SECCIÓN 3: Funcionalidades Generales</h2>
+
+        <div class="section">
+            <h3>3.1 Autenticación y Cuentas</h3>
+            <p>
+                Cada usuario tiene una cuenta con email y contraseña. Los datos se almacenan de forma segura en la nube (Supabase).
+                Al cerrar sesión en el navegador, se limpian los datos locales. Pueden regresar cuando lo deseen con sus credenciales.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>3.2 Cambio de Contraseña</h3>
+            <p>
+                Disponible en el menú <strong>Ajustes</strong> (sección lateral). Permite cambiar la contraseña de forma segura.
+                La contraseña anterior será invalidada después del cambio.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>3.3 Exportar e Importar Datos</h3>
+            <p>
+                En la sección <strong>Ajustes</strong>, se pueden:
+            </p>
+            <ul>
+                <li><strong>Exportar:</strong> Descargar todos los datos en formato JSON como respaldo de seguridad.</li>
+                <li><strong>Importar:</strong> Cargar un archivo JSON anterior para restaurar datos (útil en caso de pérdida accidental).</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>3.4 Instalación como Aplicación Nativa (PWA)</h3>
+            <p>FleetFinanzas puede instalarse como una aplicación nativa en móviles y computadoras:</p>
+            <ul>
+                <li><strong>En iPhone (iOS):</strong> Abre Safari, navega a la app, toca el ícono <strong>Compartir</strong>,
+                    y selecciona <strong>"Añadir a pantalla de inicio"</strong>. La app se instalará como ícono nativo en el home.</li>
+                <li><strong>En Android:</strong> Abre Chrome, toca el menú (tres puntos), y selecciona <strong>"Instalar aplicación"</strong>.</li>
+                <li><strong>En Windows/Mac:</strong> Abre Chrome, haz clic en el ícono de instalación (arriba a la derecha de la barra de direcciones).</li>
+            </ul>
+            <p class="tip">
+                <strong>Ventajas:</strong> Acceso directo desde el home, funciona offline (con datos descargados previamente),
+                experiencia similar a una app nativa.
+            </p>
+        </div>
+
+        <div class="section">
+            <h3>3.5 Sincronización y Datos en la Nube</h3>
+            <p>
+                Los datos se guardan automáticamente en la nube. Esto permite:
+            </p>
+            <ul>
+                <li>Acceder a los mismos datos desde cualquier dispositivo (teléfono, tablet, PC) con la misma cuenta.</li>
+                <li>Usar la app offline: los cambios se sincronizarán cuando vuelva la conexión a Internet.</li>
+                <li>Seguridad: copia de seguridad automática de todos los registros.</li>
+            </ul>
+        </div>
+
+        <div class="page-break"></div>
+
+        <h2>TIPS Y MEJORES PRÁCTICAS</h2>
+
+        <div class="section">
+            <h3>Para la sección FLUJO:</h3>
+            <ul>
+                <li>✅ Actualiza los cobros pendientes regularmente. Marca como "Cobrado" apenas llegue el dinero.</li>
+                <li>✅ Usa el <strong>Recomendador</strong> para priorizar qué pagar primero (evita atrasos con proveedores críticos).</li>
+                <li>✅ Mantén los <strong>Costos Fijos</strong> al día para que las proyecciones de flujo sean precisas.</li>
+                <li>✅ Revisa el gráfico de flujo de fondos <strong>mensualmente</strong> para detectar tendencias y problemas futuros.</li>
+                <li>✅ Usa el simulador de cobros para ver cómo mejoraría el saldo si cobras a determinados clientes.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>Para la sección FLEETCOST:</h3>
+            <ul>
+                <li>✅ Registra <strong>TODOS</strong> los viajes para que el análisis de rentabilidad sea confiable y útil.</li>
+                <li>✅ Usa el <strong>Selector de Unidades</strong> para viajes en camiones específicos (datos más precisos).</li>
+                <li>✅ Revisa el historial por chofer <strong>mensualmente</strong> para identificar quiénes son más rentables.</li>
+                <li>✅ Ajusta los precios de flete basándote en el análisis de márgenes (busca 30%+ de rentabilidad).</li>
+                <li>✅ Monitorea el <strong>consumo de combustible</strong> por chofer para detectar problemas mecánicos o conducción ineficiente.</li>
+                <li>✅ Si un chofer tiene bajo margen consistentemente, revisa si es por fletes bajos, consumo alto, o costos fijos altos.</li>
+            </ul>
+        </div>
+
+        <div class="tip">
+            <strong>🎯 Objetivo general:</strong> FleetFinanzas te ayuda a tomar decisiones basadas en datos.
+            Úsalo para optimizar precios, identificar ineficiencias, y asegurar que cada viaje sea rentable.
+        </div>
+
+        <div class="footer">
+            <p><strong>FleetFinanzas Instructivo</strong></p>
+            <p style="margin-top: 10px;">Para imprimir a PDF: Presiona Ctrl+P (Windows) o Cmd+P (Mac), y selecciona "Guardar como PDF".</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -690,12 +690,32 @@ function limpiarHistorial() {
 const _fcAuthId    = localStorage.getItem('fleet_uid') || 'nacho';
 const FC_UNITS_KEY = _fcAuthId === 'nacho' ? 'fleetcost_unidades' : 'fleetcost_unidades_' + _fcAuthId;
 const FC_HIST_KEY  = _fcAuthId === 'nacho' ? 'fleetcost_historial' : 'fleetcost_historial_' + _fcAuthId;
+const FC_FLUJO_KEY = _fcAuthId === 'nacho' ? 'flujo_v7' : 'flujo_v7_' + _fcAuthId;
+const FC_CLOUD_KEYS = window.supabaseState?.keys || {};
+let historialSyncTimer = null;
+
+function writeLocalHistorial(items) {
+  try { localStorage.setItem(FC_HIST_KEY, JSON.stringify(items)); } catch(e) {}
+}
+
+function writeLocalUnitsFC(units) {
+  try { localStorage.setItem(FC_UNITS_KEY, JSON.stringify(units)); } catch(e) {}
+}
+
+function scheduleFleetCostCloudSave(appKey, payloadFactory) {
+  if (!window.supabaseState || !appKey) return;
+  clearTimeout(historialSyncTimer);
+  historialSyncTimer = setTimeout(async () => {
+    await window.supabaseState.save(appKey, payloadFactory());
+  }, 500);
+}
 
 function loadHistorialSaved() {
   try { return JSON.parse(localStorage.getItem(FC_HIST_KEY) || '[]'); } catch(e) { return []; }
 }
 function saveHistorial() {
-  try { localStorage.setItem(FC_HIST_KEY, JSON.stringify(viajesGuardados)); } catch(e) {}
+  writeLocalHistorial(viajesGuardados);
+  scheduleFleetCostCloudSave(FC_CLOUD_KEYS.fleetcostHist, () => viajesGuardados);
 }
 
 function loadUnitsFC() {
@@ -782,4 +802,40 @@ document.addEventListener('DOMContentLoaded', () => {
   populateUnitSelector();
   syncPrecioGasoil();
   calcular();
+});
+
+async function hydrateFleetCostCloudData() {
+  if (!window.supabaseState) return;
+
+  const [unitsRemote, historialRemote, flujoRemote] = await Promise.all([
+    FC_CLOUD_KEYS.units ? window.supabaseState.load(FC_CLOUD_KEYS.units) : Promise.resolve(null),
+    FC_CLOUD_KEYS.fleetcostHist ? window.supabaseState.load(FC_CLOUD_KEYS.fleetcostHist) : Promise.resolve(null),
+    FC_CLOUD_KEYS.flujo ? window.supabaseState.load(FC_CLOUD_KEYS.flujo) : Promise.resolve(null)
+  ]);
+
+  if (unitsRemote?.success && Array.isArray(unitsRemote.data)) {
+    writeLocalUnitsFC(unitsRemote.data);
+  } else if (window.supabaseState.getUserId() && loadUnitsFC().length) {
+    scheduleFleetCostCloudSave(FC_CLOUD_KEYS.units, () => loadUnitsFC());
+  }
+
+  if (historialRemote?.success && Array.isArray(historialRemote.data)) {
+    viajesGuardados = historialRemote.data;
+    writeLocalHistorial(viajesGuardados);
+    renderHistorial();
+  } else if (window.supabaseState.getUserId() && viajesGuardados.length) {
+    scheduleFleetCostCloudSave(FC_CLOUD_KEYS.fleetcostHist, () => viajesGuardados);
+  }
+
+  if (flujoRemote?.success && flujoRemote.data) {
+    localStorage.setItem(FC_FLUJO_KEY, JSON.stringify(flujoRemote.data));
+    syncPrecioGasoil();
+  }
+
+  document.getElementById('tab-count').textContent = viajesGuardados.length;
+  populateUnitSelector();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await hydrateFleetCostCloudData();
 });

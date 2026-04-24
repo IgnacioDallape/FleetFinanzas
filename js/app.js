@@ -1388,7 +1388,9 @@ function cheqDepositar() {
 let ffYear = parseInt(TODAY.slice(0,4));
 let ffMonth = parseInt(TODAY.slice(5,7));
 let ffDragId = null;
-let ffDragType = null; // 'pago'
+let ffDragType = null; // 'pago' o 'cobro'
+let ffSelectedItem = null; // {type, id} para mobile selection
+let ffSelectionMode = false; // active selection mode en mobile
 
 // pagos con fechaPago separada de fecha vencimiento
 // Stored in data.pagos as p.fechaPago (puede diferir de p.fecha)
@@ -1405,6 +1407,30 @@ function ffHoy(){ ffYear=parseInt(TODAY.slice(0,4)); ffMonth=parseInt(TODAY.slic
 function renderFF() {
   const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   document.getElementById('ff-mes-label').textContent = MESES[ffMonth-1]+' '+ffYear;
+
+  // Show/hide mobile selection button
+  const toggleBtn = document.getElementById('ff-toggle-select-btn');
+  const isMobile = isMobileView();
+  if(toggleBtn) {
+    toggleBtn.style.display = isMobile ? 'inline-block' : 'none';
+    if(isMobile) {
+      toggleBtn.textContent = ffSelectionMode ? '✓ Modo selección activo' : 'Seleccionar (móvil)';
+      toggleBtn.style.background = ffSelectionMode ? 'var(--accent)' : '';
+      toggleBtn.style.color = ffSelectionMode ? '#fff' : '';
+    }
+  }
+
+  // Update page subtitle based on mobile mode
+  const subtitle = document.getElementById('ff-page-sub');
+  if(subtitle) {
+    if(isMobile) {
+      subtitle.textContent = ffSelectionMode
+        ? 'Click en un cobro/pago → luego click en otro día'
+        : 'Presiona "Seleccionar" para mover items en mobile';
+    } else {
+      subtitle.textContent = 'Arrastrá los pagos y cobros al día que planificás';
+    }
+  }
 
   const mesStr = ffYear+'-'+(ffMonth<10?'0':'')+ffMonth;
 
@@ -1488,14 +1514,15 @@ function renderFF() {
     const costosRec = cvGetCostosDelDia(ds);
     const costosFijosD = cfGetDelDia(ds);
     const chips=[
-      ...info.cobros.map(c=>`<div class="ff-chip cobro" draggable="false" title="${c.nombre}: ${fmt(calcNetoIngreso(c))}">↓ ${c.nombre.slice(0,10)}</div>`),
+      ...info.cobros.map(c=>`<div class="ff-chip cobro" draggable="true" ondragstart="ffDragStart(event,${c.id},'cobro')" ondragend="ffDragEnd(event)" onclick="ffHandleChipClick(event,${c.id},'cobro','${ds}')" title="${c.nombre}: ${fmt(calcNetoIngreso(c))}">↓ ${c.nombre.slice(0,10)}</div>`),
       ...costosRec.map(cv=>`<div class="ff-chip pago" draggable="false" style="opacity:.7" title="${cv.nombre}: ${fmt(cv.monto)} (recurrente)">↻ ${cv.nombre.slice(0,10)}</div>`),
       ...costosFijosD.map(cf=>`<div class="ff-chip cf-fijo" draggable="false" title="${cf.nombre}: ${fmt(cf.monto)} (costo fijo)">■ ${cf.nombre.slice(0,10)}</div>`),
       ...info.pagos.map(p=>{
         const overdue=p.fecha<ds;
-        return`<div class="ff-chip ${overdue?'pago-vencido':'pago'}" draggable="true" 
-          ondragstart="ffDragStart(event,${p.id})" 
+        return`<div class="ff-chip ${overdue?'pago-vencido':'pago'}" draggable="true"
+          ondragstart="ffDragStart(event,${p.id})"
           ondragend="ffDragEnd(event)"
+          onclick="ffHandleChipClick(event,${p.id},'pago','${ds}')"
           title="${p.nombre}: ${fmt(p.monto)}${overdue?' ⚠ vence '+fmtDate(p.fecha):''}">
           ↑ ${p.nombre.slice(0,10)}${overdue?' ⚑':''}
         </div>`;
@@ -1573,6 +1600,96 @@ function ffDrop(event, fecha) {
     p.fechaPago = fecha;
   }
   save();
+  renderFF();
+}
+
+// MOBILE SELECTION MODE - Click to select, click again to place
+function isMobileView() {
+  return window.innerWidth < 480;
+}
+
+function ffHandleChipClick(event, id, tipo, fechaDia) {
+  if(!isMobileView()) return; // desktop usa drag & drop
+  event.stopPropagation();
+
+  if(!ffSelectionMode) return; // selección desactivada
+
+  if(ffSelectedItem && ffSelectedItem.id === id) {
+    // Click en el mismo item = deseleccionar
+    ffCancelSelection();
+  } else if(ffSelectedItem) {
+    // Ya hay algo seleccionado - colocar aquí
+    ffPlaceSelected(fechaDia);
+  } else {
+    // Seleccionar este item
+    ffSelectItem(id, tipo);
+  }
+}
+
+function ffToggleSelectionMode() {
+  if(!isMobileView()) {
+    alert('El modo selección es solo para mobile. En desktop usa drag & drop.');
+    return;
+  }
+  ffSelectionMode = !ffSelectionMode;
+  ffCancelSelection();
+  renderFF();
+
+  const grid = document.getElementById('ff-cal-grid');
+  if(grid) {
+    if(ffSelectionMode) {
+      grid.classList.add('ff-selection-mode');
+    } else {
+      grid.classList.remove('ff-selection-mode');
+    }
+  }
+}
+
+function ffSelectItem(id, tipo) {
+  ffSelectedItem = {id, tipo};
+
+  // Visual feedback
+  document.querySelectorAll('.ff-chip.selected').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll(`.ff-chip[onclick*="${id}"]`).forEach(el=>el.classList.add('selected'));
+
+  // Show info
+  const infoEl = document.getElementById('ff-selection-info');
+  if(infoEl) {
+    const item = tipo==='cobro'
+      ? data.cobros.find(c=>c.id===id)
+      : data.pagos.find(p=>p.id===id);
+    if(item) {
+      infoEl.textContent = `✓ Seleccionado: ${item.nombre} | Haz click en otro día para colocar`;
+      infoEl.classList.add('show');
+    }
+  }
+}
+
+function ffCancelSelection() {
+  ffSelectedItem = null;
+  document.querySelectorAll('.ff-chip.selected').forEach(el=>el.classList.remove('selected'));
+  const infoEl = document.getElementById('ff-selection-info');
+  if(infoEl) {
+    infoEl.classList.remove('show');
+  }
+}
+
+function ffPlaceSelected(fecha) {
+  if(!ffSelectedItem) return;
+
+  const {id, tipo} = ffSelectedItem;
+  if(tipo === 'cobro') {
+    const c = data.cobros.find(x=>x.id===id);
+    if(!c) return;
+    c.fecha = fecha;
+  } else {
+    const p = data.pagos.find(x=>x.id===id);
+    if(!p) return;
+    p.fechaPago = fecha;
+  }
+
+  save();
+  ffCancelSelection();
   renderFF();
 }
 

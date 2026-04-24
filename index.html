@@ -535,9 +535,10 @@ if ('serviceWorker' in navigator) {
       <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
         <div>
           <div class="page-title">Flujo de fondos</div>
-          <div class="page-sub">Arrastrá los pagos al día que planificás pagar</div>
+          <div class="page-sub" id="ff-page-sub">Arrastrá los pagos al día que planificás pagar</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-sm ff-selection-toggle" style="display:none" onclick="ffToggleSelectionMode()" id="ff-toggle-select-btn">Seleccionar (móvil)</button>
           <button class="btn btn-sm" onclick="ffMes(-1)">← Mes anterior</button>
           <span id="ff-mes-label" style="font-size:13px;font-weight:500;min-width:120px;text-align:center"></span>
           <button class="btn btn-sm" onclick="ffMes(1)">Siguiente →</button>
@@ -545,6 +546,7 @@ if ('serviceWorker' in navigator) {
         </div>
       </div>
 
+      <div id="ff-selection-info" class="ff-selection-info"></div>
       <div class="metrics" id="ff-metrics"></div>
 
       <div class="ff-wrap" style="display:grid;grid-template-columns:1fr 280px;gap:20px;align-items:start">
