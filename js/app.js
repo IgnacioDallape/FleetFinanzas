@@ -1707,6 +1707,46 @@ function renderFF() {
       </div>`;
     }).join('') :
     '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros este mes</div>';
+
+  // Cobros depositados
+  const cobrosDeposit = data.cobros.filter(c=>c.cobrado).filter(c=>{
+    const displayFecha = c.fechaColocada || fechaAcreditacion(c);
+    return displayFecha.startsWith(mesStr);
+  });
+  document.getElementById('ff-cobros-depositados').innerHTML = cobrosDeposit.length ?
+    cobrosDeposit.sort((a,b)=>{
+      const aFecha = a.fechaColocada || fechaAcreditacion(a);
+      const bFecha = b.fechaColocada || fechaAcreditacion(b);
+      return aFecha.localeCompare(bFecha);
+    }).map(c=>{
+      const displayFecha = c.fechaColocada || fechaAcreditacion(c);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;opacity:0.7">
+        <div>
+          <div style="font-weight:500">${c.nombre}</div>
+          <div style="font-size:10px;color:var(--text3)">${fmtDate(displayFecha)} · ${c.tipo}</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
+      </div>`;
+    }).join('') :
+    '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cobros depositados</div>';
+
+  // Pagos pagados
+  const pagosPagados = data.pagos.filter(p=>p.pagado).filter(p=>{
+    const fecha = ffGetFechaPago(p);
+    return fecha.startsWith(mesStr);
+  });
+  document.getElementById('ff-pagos-pagados').innerHTML = pagosPagados.length ?
+    pagosPagados.sort((a,b)=>ffGetFechaPago(a).localeCompare(ffGetFechaPago(b))).map(p=>{
+      const fecha = ffGetFechaPago(p);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;opacity:0.7">
+        <div>
+          <div style="font-weight:500">${p.nombre}</div>
+          <div style="font-size:10px;color:var(--text3)">${fmtDate(fecha)} · ${p.cat}</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--red)">-${fmt(p.monto)}</div>
+      </div>`;
+    }).join('') :
+    '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos realizados</div>';
 }
 
 function ffDragStart(event, id, tipo='pago') {
