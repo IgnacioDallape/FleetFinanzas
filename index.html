@@ -209,14 +209,18 @@ if ('serviceWorker' in navigator) {
       <div class="metrics" id="dash-metrics"></div>
       <div class="alerts" id="dash-alerts" style="display:none"></div>
 
-      <!-- GRAFICOS -->
-      <div class="grid2">
+      <!-- FLUJO ACUMULADO -->
+      <div class="grid2" style="grid-template-columns: 1fr;">
         <div class="card">
           <div class="card-header"><span class="card-title">Flujo acumulado</span></div>
           <div class="card-body" style="padding:16px">
             <div class="chart-wrap" style="height:220px"><canvas id="chart-flujo" role="img" aria-label="Grafico flujo de caja"></canvas></div>
           </div>
         </div>
+      </div>
+
+      <!-- SIMULADORES: PAGOS + COBROS -->
+      <div class="grid2">
         <div class="card cs-card">
           <div class="card-header">
             <span class="card-title">Pagos</span>
@@ -245,18 +249,6 @@ if ('serviceWorker' in navigator) {
             <div id="ps-pendientes-list"></div>
           </div>
         </div>
-      </div>
-
-      <!-- PAGOS + COBROS -->
-      <div class="grid2">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">¿Qué puedo pagar hoy?</span>
-            <span id="rec-saldo-disp" style="font-size:12px;font-family:var(--font-mono);color:var(--text3)"></span>
-          </div>
-          <div id="rec-mode-bar"></div>
-          <div class="rec-list" id="rec-list"></div>
-        </div>
         <!-- COBROS SIMULATOR -->
         <div class="card cs-card">
           <div class="card-header">
@@ -284,6 +276,18 @@ if ('serviceWorker' in navigator) {
             <div id="cs-pendientes-empty" class="cs-empty-hint" style="display:none;">Sin cobros pendientes</div>
             <div id="cs-pendientes-list"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- RECOMENDACION: ¿QUÉ PUEDO PAGAR HOY? -->
+      <div class="grid2" style="grid-template-columns: 1fr;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">¿Qué puedo pagar hoy?</span>
+            <span id="rec-saldo-disp" style="font-size:12px;font-family:var(--font-mono);color:var(--text3)"></span>
+          </div>
+          <div id="rec-mode-bar"></div>
+          <div class="rec-list" id="rec-list"></div>
         </div>
       </div>
     </div>
