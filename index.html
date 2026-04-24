@@ -217,32 +217,10 @@ if ('serviceWorker' in navigator) {
             <div class="chart-wrap" style="height:220px"><canvas id="chart-flujo" role="img" aria-label="Grafico flujo de caja"></canvas></div>
           </div>
         </div>
-        <div class="card cs-card">
-          <div class="card-header">
-            <span class="card-title">Pagos</span>
-            <span id="ps-total-header" style="font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--red)"></span>
-            <button class="btn btn-sm" onclick="pagosSimReset()">↺ Reiniciar</button>
-          </div>
-          <!-- A PAGAR drop zone -->
-          <div class="cs-zone cs-acobrar-zone" id="ps-apagar"
-            ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="psDropTo('apagar',event)">
-            <div id="ps-apagar-empty" class="cs-empty-hint">
-              <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--text3);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-right:6px"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-              Arrastrá pagos acá para simularlos
-            </div>
-            <div id="ps-apagar-list"></div>
-          </div>
-          <!-- divider -->
-          <div class="cs-divider">
-            <span class="cs-div-tag">A pagar</span>
-            <span class="cs-div-total" id="ps-total">$ 0</span>
-          </div>
-          <!-- PENDIENTES -->
-          <div class="cs-zone cs-pending-zone" id="ps-pendientes"
-            ondragover="csDragOver(event)" ondragleave="csDragLeave(event)" ondrop="psDropTo('pendientes',event)">
-            <div id="ps-pendientes-empty" class="cs-empty-hint" style="display:none;">Sin pagos pendientes</div>
-            <div id="ps-pendientes-header" style="font-size:11px;color:var(--text3);padding:8px;text-align:center"></div>
-            <div id="ps-pendientes-list"></div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Pagos por categoría</span></div>
+          <div class="card-body" style="padding:16px">
+            <div class="chart-wrap" style="height:220px"><canvas id="chart-cats" role="img" aria-label="Grafico de pagos por categoria"></canvas></div>
           </div>
         </div>
       </div>

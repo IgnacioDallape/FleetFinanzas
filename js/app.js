@@ -305,7 +305,7 @@ const PRIO_LABEL={urgente:'Urgente',normal:'Normal','puede-esperar':'Puede esper
 const PRIO_BADGE={urgente:'badge-red',normal:'badge-amber','puede-esperar':'badge-gray'};
 
 // NAVEGACION
-let chartFlujo=null;
+let chartFlujo=null, chartCats=null;
 let semanaOffset=0;
 let semanaFiltro=null;
 let cobrosFiltro='todos';
@@ -558,6 +558,23 @@ function renderCharts(flujo){
         x:{ticks:{color:'#9a9690',font:{size:10,family:'DM Mono'},autoSkip:false,maxRotation:45},grid:{color:'rgba(0,0,0,0.04)'},border:{color:'rgba(0,0,0,0.07)'}},
         y:{ticks:{color:'#9a9690',font:{size:10,family:'DM Mono'},callback:v=>'$'+(v/1000000).toFixed(1)+'M'},grid:{color:'rgba(0,0,0,0.04)'},border:{color:'rgba(0,0,0,0.07)'}}
       }
+    }
+  });
+
+  // Pagos por categoría chart
+  if(chartCats){chartCats.destroy();chartCats=null;}
+  const catMap={};
+  data.pagos.filter(p=>!p.pagado).forEach(p=>{catMap[p.cat]=(catMap[p.cat]||0)+p.monto;});
+  const catLabels=Object.keys(catMap);
+  const catColors=['rgba(26,107,58,0.8)','rgba(26,95,168,0.8)','rgba(192,57,43,0.8)','rgba(183,96,10,0.8)','rgba(120,70,180,0.8)','rgba(20,140,100,0.8)','rgba(160,80,40,0.8)'];
+  chartCats=new Chart(document.getElementById('chart-cats'),{
+    type:'doughnut',
+    data:{labels:catLabels,datasets:[{data:catLabels.map(k=>catMap[k]),backgroundColor:catColors.slice(0,catLabels.length),borderWidth:2,borderColor:'#ffffff',hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'right',labels:{color:'#5a5650',font:{size:11,family:'DM Sans'},boxWidth:10,padding:10}},
+        tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.raw)},backgroundColor:'#fff',titleColor:'#5a5650',bodyColor:'#1a1814',borderColor:'rgba(0,0,0,0.1)',borderWidth:1}
+      },cutout:'65%'
     }
   });
 }
