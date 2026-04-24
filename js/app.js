@@ -114,6 +114,139 @@ function doChangePassword() {
   });
 }
 
+// ── SUPABASE ───────────────────────────────────────────
+const SUPABASE_URL = 'https://eqenqgrqvjithlayrezv.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Qom4VOOQvZiFqvSXmT8pmw_Y2gqm_7l';
+
+// Inicializar cliente de Supabase
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Estado de Supabase para sincronización cloud
+window.supabaseState = {
+  keys: {
+    flujo: 'flujo_data',
+    units: 'units_data',
+    fleetcostHist: 'fleetcost_hist'
+  },
+
+  getUserId() {
+    const session = localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY);
+    if (!session) return null;
+    try {
+      const parsed = JSON.parse(session);
+      return parsed.userId || null;
+    } catch { return null; }
+  },
+
+  async load(key) {
+    try {
+      const userId = this.getUserId();
+      if (!userId) return { success: false };
+
+      const { data, error } = await supabaseClient
+        .from('user_data')
+        .select('data')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No existe registro - primera vez del usuario
+          return { success: false };
+        }
+        console.warn('supabaseLoadAppState failed:', key, error);
+        return { success: false };
+      }
+
+      return { success: true, data: data?.data?.[key] || null };
+    } catch (err) {
+      console.warn('supabaseLoadAppState failed:', key, err);
+      return { success: false };
+    }
+  },
+
+  async save(key, payload) {
+    try {
+      const userId = this.getUserId();
+      if (!userId) return { success: false };
+
+      // Obtener datos actuales
+      const { data: existing } = await supabaseClient
+        .from('user_data')
+        .select('data')
+        .eq('user_id', userId)
+        .single();
+
+      const currentData = existing?.data || {};
+      currentData[key] = payload;
+
+      const { error } = await supabaseClient
+        .from('user_data')
+        .upsert({
+          user_id: userId,
+          data: currentData,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (error) {
+        console.warn('supabaseSaveAppState failed:', key, error);
+        return { success: false };
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.warn('supabaseSaveAppState failed:', key, err);
+      return { success: false };
+    }
+  },
+
+  async remove(key) {
+    try {
+      const userId = this.getUserId();
+      if (!userId) return;
+
+      const { data: existing } = await supabaseClient
+        .from('user_data')
+        .select('data')
+        .eq('user_id', userId)
+        .single();
+
+      if (existing?.data) {
+        delete existing.data[key];
+        await supabaseClient
+          .from('user_data')
+          .upsert({
+            user_id: userId,
+            data: existing.data,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+      }
+    } catch (err) {
+      console.warn('supabaseRemoveAppState failed:', key, err);
+    }
+  }
+};
+
+// Función de login con Supabase
+async function supabaseLogin(email, password) {
+  try {
+    // Por ahora usa el sistema local de AUTH_USERS
+    // En el futuro puedes migrar a Supabase Auth
+    const user = AUTH_USERS.find(u => u.user === email && u.pass === password);
+    if (!user) return { success: false, error: 'Usuario o contraseña incorrectos' };
+
+    return {
+      success: true,
+      id: user.id,
+      storage_id: user.id,
+      email: user.user,
+      full_name: user.user
+    };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
 // ── APP ───────────────────────────────────────────────
 const TODAY = new Date().toISOString().slice(0, 10);
 
