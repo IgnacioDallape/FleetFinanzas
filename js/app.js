@@ -1677,7 +1677,7 @@ function renderFF() {
             <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
           </div>
         `).join('') :
-        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cheques depositados</div>
+        `<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cheques depositados</div>`
       }
     </div>
   `;
@@ -1696,7 +1696,7 @@ function renderFF() {
             <div style="font-family:var(--font-mono);font-size:12px;color:var(--red)">-${fmt(p.monto)}</div>
           </div>
         `).join('') :
-        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos efectuados</div>
+        `<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos efectuados</div>`
       }
     </div>
   `;
@@ -1715,7 +1715,7 @@ function renderFF() {
             <div style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">+${fmt(calcNetoIngreso(c))}</div>
           </div>
         `).join('') :
-        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cheques a cobrar</div>
+        `<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin cheques a cobrar</div>`
       }
     </div>
   `;
@@ -1734,7 +1734,7 @@ function renderFF() {
             <div style="font-family:var(--font-mono);font-size:12px;color:var(--red)">-${fmt(p.monto)}</div>
           </div>
         `).join('') :
-        '<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos pendientes</div>
+        `<div style="padding:12px 14px;font-size:11px;color:var(--text3)">Sin pagos pendientes</div>`
       }
     </div>
   `;
