@@ -1940,11 +1940,19 @@ function ffDrop(event, fecha) {
   if(ffNormalizeType(ffDragType) === 'cheque') {
     const c = data.cobros.find(x=>x.id===ffDragId);
     if(!c) return;
+    if(c.cobrado) {
+      data.disponible -= calcNetoIngreso(c);
+      c.cobrado = false;
+    }
     // Store the calendar placement date - this is where user wants to see it
     c.fechaColocada = fecha;
   } else if(ffNormalizeType(ffDragType) === 'pago') {
     const p = data.pagos.find(x=>x.id===ffDragId);
     if(!p) return;
+    if(p.pagado) {
+      data.disponible += p.monto;
+      p.pagado = false;
+    }
     p.fechaPago = fecha;
   }
   save();
@@ -1966,12 +1974,14 @@ function ffDropZone(event, tipo, action) {
         data.disponible += calcNetoIngreso(c);
         c.cobrado = true;
       }
+      delete c.fechaColocada;
     } else if(action === 'cobrado-false') {
       // Mark as unpaid - subtract from disponible
       if(c.cobrado) {
         data.disponible -= calcNetoIngreso(c);
         c.cobrado = false;
       }
+      delete c.fechaColocada;
     }
   } else if(tipo === 'pago') {
     const p = data.pagos.find(x=>x.id===ffDragId);
@@ -1983,12 +1993,14 @@ function ffDropZone(event, tipo, action) {
         data.disponible -= p.monto;
         p.pagado = true;
       }
+      delete p.fechaPago;
     } else if(action === 'pagado-false') {
       // Mark as unpaid - add back to disponible
       if(p.pagado) {
         data.disponible += p.monto;
         p.pagado = false;
       }
+      delete p.fechaPago;
     }
   }
 
