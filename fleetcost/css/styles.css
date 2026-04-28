@@ -114,6 +114,12 @@ body{
 
 /* ── LAYOUT ── */
 .main-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start;min-width:0;}
+.main-grid > div,
+.main-grid > section,
+.main-grid > aside{
+  min-width:0;
+  max-width:100%;
+}
 @media(max-width:780px){
   .main-grid{grid-template-columns:1fr;}
   .header{flex-direction:column;align-items:flex-start;gap:12px;}
@@ -122,6 +128,7 @@ body{
 /* ── SECTION HEAD ── */
 .section-head{display:flex;align-items:center;gap:11px;margin:18px 0 10px;}
 .section-head:first-child{margin-top:0;}
+.section-head > div:last-child{min-width:0;max-width:100%;}
 .section-icon{
   width:32px;height:32px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
@@ -618,6 +625,7 @@ body{
   .unit-selector-wrap,
   .cost-bar,
   .costos-base-panel{padding:10px;}
+  .main-grid > div{overflow:hidden;}
   .main-grid,
   .results,
   .trip-grid,
