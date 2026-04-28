@@ -118,7 +118,7 @@ function doChangePassword() {
 // Constants are defined in supabase-config.js
 // Note: SUPABASE_URL and SUPABASE_ANON_KEY are already declared there
 
-let supabaseClient = null;
+/* let supabaseClient = null;
 
 // Inicializar cliente de Supabase cuando esté disponible
 function initSupabase() {
@@ -264,7 +264,7 @@ async function supabaseLogin(email, password) {
   } catch (err) {
     return { success: false, error: err.message };
   }
-}
+} */
 
 // ── APP ───────────────────────────────────────────────
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -1928,17 +1928,21 @@ function ffDragEnd(event) {
   ffDragEstado = null;
 }
 
+function ffNormalizeType(tipo) {
+  return tipo === 'cobro' ? 'cheque' : tipo;
+}
+
 function ffDrop(event, fecha) {
   event.preventDefault();
   event.currentTarget.classList.remove('drag-over');
   if(ffDragId===null) return;
 
-  if(ffDragType === 'cobro' || ffDragType === 'cheque') {
+  if(ffNormalizeType(ffDragType) === 'cheque') {
     const c = data.cobros.find(x=>x.id===ffDragId);
     if(!c) return;
     // Store the calendar placement date - this is where user wants to see it
     c.fechaColocada = fecha;
-  } else if(ffDragType === 'pago') {
+  } else if(ffNormalizeType(ffDragType) === 'pago') {
     const p = data.pagos.find(x=>x.id===ffDragId);
     if(!p) return;
     p.fechaPago = fecha;
@@ -1950,6 +1954,7 @@ function ffDrop(event, fecha) {
 function ffDropZone(event, tipo, action) {
   event.preventDefault();
   if(ffDragId===null) return;
+  if(ffNormalizeType(ffDragType) !== tipo) return;
 
   if(tipo === 'cheque') {
     const c = data.cobros.find(x=>x.id===ffDragId);
