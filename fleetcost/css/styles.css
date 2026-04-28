@@ -573,13 +573,15 @@ body{
   .page{padding:1rem .75rem 3rem;}
   .header{margin-bottom:1.5rem;padding-bottom:1rem;}
   .section-title{font-size:12px;}
-  .section-desc{font-size:8px;}
-  .field-label{font-size:11px;gap:3px;}
-  .field-hint{font-size:8px;}
-  .input-affix{padding:0 9px;}
+  .section-desc{font-size:8.5px;letter-spacing:.03em;}
+  .field{margin-bottom:16px;}
+  .field-label{font-size:11.5px;font-weight:600;gap:2px;line-height:1.25;margin-bottom:8px;}
+  .field-hint{font-size:8.5px;line-height:1.45;letter-spacing:.02em;opacity:.92;}
+  .input-affix{padding:0 10px;font-size:10px;}
   .input-wrap input{padding:0 10px;height:42px;}
   .card-inner{padding:14px 12px;}
   .field{min-width:0;}
+  .rule{margin:14px 0;}
   .main-grid{gap:14px;}
 }
 
