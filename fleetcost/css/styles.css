@@ -585,7 +585,7 @@ body{
 }
 
 @media(max-width:480px){
-  .page{padding:1rem .75rem 3rem;}
+  .page{padding:.75rem .5rem 2.5rem;}
   .header{margin-bottom:1.5rem;padding-bottom:1rem;}
   .section-title{font-size:12px;}
   .section-desc{font-size:8.5px;letter-spacing:.03em;}
@@ -594,10 +594,42 @@ body{
   .field-hint{font-size:8.5px;line-height:1.45;letter-spacing:.02em;opacity:.92;}
   .input-affix{padding:0 10px;font-size:10px;}
   .input-wrap input{padding:0 10px;height:42px;}
-  .card-inner{padding:14px 12px;}
+  .card,
+  .hero-card,
+  .breakdown,
+  .total-card,
+  .costos-base-panel,
+  .unit-selector-wrap,
+  .cost-bar,
+  .trip-section,
+  .hist-card-compact,
+  .chofer-ranking{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow:hidden;
+  }
+  .card-inner{padding:14px 10px;}
   .field{min-width:0;}
   .rule{margin:14px 0;}
   .main-grid{gap:14px;}
+  .tab-nav{gap:3px;padding:3px;flex-wrap:wrap;}
+  .tab-btn{flex:1 1 0;min-width:0;justify-content:center;padding:8px 10px;}
+  .unit-selector-wrap,
+  .cost-bar,
+  .costos-base-panel{padding:10px;}
+  .main-grid,
+  .results,
+  .trip-grid,
+  .trip-result,
+  .trip-inputs{min-width:0;max-width:100%;}
+  .trip-grid,
+  .metrics-grid,
+  .direct-grid,
+  .trip-metrics,
+  .hist-summary,
+  .cr-grid{grid-template-columns:1fr;}
+  .trip-result+.trip-result{border-left:none;border-top:1px solid var(--border);}
 }
 
 /* ── FOOTER ── */
